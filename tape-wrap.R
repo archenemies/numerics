@@ -5,10 +5,10 @@ mysource("expanding_list.R")
 
 new_tape <- function() {
   buf <- list()
-  length <- 0
-  next_id <- function() { length+1 }
+  length <- 0L
+  next_id <- function() { length+1L }
   add <- function(val) {
-    length <<- length + 1
+    length <<- length + 1L
     buf[[length]] <<- val
   }
   get <- function(ix) {
@@ -21,7 +21,9 @@ show_tape = function() {
     cat("Tape of length ",length, "\n");
     for(i in 1 %upto% length) {
       ent = buf[[i]]
-      cat("id=",ent$id, " op=",ent$op," inputs=",deparse(ent$inputs),": ",ent$repr,"\n")
+      cat("id=",ent$id, " op=",deparse(ent$op),
+        " inputs=",deparse(ent$inputs),": ",
+        deparse(ent$repr),"\n")
     }
   })
 }
@@ -38,6 +40,7 @@ stop_if_no_tape <- function() {
 # define the tape_wrap class
 tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
   stop_if_no_tape()
+#  pv(inputs)
   stopifnot(is.integer(inputs))
   stopifnot(is.character(repr))
   res = structure(
@@ -50,7 +53,7 @@ tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
 
 tape_var <- function(value) {
   repr = deparse(substitute(value))
-  tape_wrap(value, repr, "tape_var", integer())
+  tape_wrap(value, "tape_var", integer(), repr=repr)
 }
 
 is.tape_wrap <- function(x) { inherits(x, "tape_wrap") }
@@ -82,15 +85,13 @@ create_method <- function(op) {
         tape_var(arg, repr=repr)
       } else { arg }
     })
-    # XXX need wrapped_args for inputs
-    # XXX need string for valstr
-    # XXX need tape_var() (op="tape_var", no inputs)
-    # now call op_func
+    # the primary quantity:
     result <- do.call(op_func, unwrapped_args)
-    input_ids = lapply(wrapped_args, function(tv) { tv$id })
-    # and return the wrapped result
-    # XXX
-    tape_wrap(result, op, input_ids)
+    # the wrapped quantity:
+    input_ids = sapply(wrapped_args, function(tv) { tv$id })
+    input_reprs = lapply(wrapped_args, function(tv) { tv$repr })
+    new_repr = paste0(op, "(", paste0(input_reprs, collapse=","), ")")
+    tape_wrap(result, op, input_ids, repr=new_repr)
   }
   
   # now install the wrapper function
@@ -108,4 +109,9 @@ if(1) {
   ## x=1; y=2;
   ## z = tape_var(x) + tape_var(y)
   pv(z)
+  w = 3
+  v = 5
+  q = tape_var(w)*tape_var(v)
+  pv(q)
+  show_tape()
 }
