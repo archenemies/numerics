@@ -2,6 +2,6 @@ FHE 25 Mar 2025
 
 Have first versions of tape_wrap, num_wrap, dual_number
 
-- Fix dual_number double-evaluation
-- Finish mdual_number
+\- Fix dual_number double-evaluation
+-> - Finish mdual_number
 - Make tape_wrap work with duals
