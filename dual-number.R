@@ -68,7 +68,6 @@ create_dual_method = function(op, dual_op) {
 dual_plus = function(e1, e2) {
   e1$dual + e2$dual
 }
-create_dual_method("+", dual_plus)
 
 # Subtraction (binary and unary):
 # Binary: (a + b*dx) - (c + d*dx) = (a - c) + (b - d)*dx
@@ -80,32 +79,45 @@ dual_minus = function(e1, e2 = NULL) {
     e1$dual - e2$dual  # Binary subtraction
   }
 }
-create_dual_method("-", dual_minus)
 
 # Multiplication: (a + b*dx) * (c + d*dx) = (a * c) + (b * c + a * d)*dx
 dual_mult = function(e1, e2) {
   e1$dual * e2$value + e1$value * e2$dual
 }
-create_dual_method("*", dual_mult)
 
 # Division: (a + b*dx) / (c + d*dx) = (a / c) + ((b * c - a * d) / c^2)*dx
 dual_div = function(e1, e2) {
   (e1$dual * e2$value - e1$value * e2$dual) / (e2$value)^2
 }
-create_dual_method("/", dual_div)
 
 # transpose
 dual_t = function(x) {
   return(t(x$dual))
 }
-create_dual_method("t", dual_t)
 
 # matrix multiplication
 dual_mat_mult = function(x,y) {
   (x$value %*% y$dual) +
     (x$dual %*% y$value)
 }
-create_dual_method("%*%", dual_mat_mult)
+
+basic_dual_ops = list(
+  "+"=dual_plus,
+  "-"=dual_minus,
+  "*"=dual_mult,
+  "/"=dual_div,
+  "t"=dual_t,
+  "%*%"=dual_mat_mult
+)
+
+basic_ops = names(basic_dual_ops)
+# 'for' causes broken lexical scoping so use lapply
+lapply(seq_along(basic_ops), function(i) {
+#  pv(i,basic_ops[[i]],basic_dual_ops[[i]])
+  create_dual_method(
+    basic_ops[[i]],
+    basic_dual_ops[[i]])
+})
 
 # ----------------------------------------------------------------
 
