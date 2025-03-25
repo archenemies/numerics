@@ -1,0 +1,53 @@
+Great, it works! Now we need to make some modifications.
+
+First let's try to make a class that wraps a single numeric of arbitrary dimension. Just call it "num_wrapper". What I want you to do differently is to write a function that automatically takes care of overriding the operators '+', '*', '/', etc. I should provide it with a list of names of operators and functions that I want to override, call it "basic_ops".
+
+num_wrapper <- function(value) { structure(list(value = value), class = "num_wrapper") };
+basic_ops <- c("+","*","-","/");
+... (( you put the rest here ))
+
+
+First, we are trying to make a class that implements dual numbers, for forward-mode automatic differentiation. Each dual number object u+v*dx has a primal component u and dual component v. The primal component is a numeric and the dual component is a numeric with the same dimension as the primal. The dual is updated according to the laws of calculus: for example, to multiply two dual numbers: (a+b*dx)*(c+d*dx) = a*b+(b*c+a*d)*dx. The dual component represents the derivative of the primal with respect to a specific, hypothetical independent variable (here "x").
+
+ Second we need a function "promote_dual" that promotes a numeric to a dual object (with zero dual by default).
+
+----------------
+
+Now I would like you to create a class for dual numbers, called dual_number, for forward-mode automatic differentiation. Each dual number object u+v*dx has a primal component u and dual component v. The primal component is a numeric and the dual component is a numeric with the same dimension as the primal. The dual is updated according to the laws of calculus: for example, to multiply two dual numbers: (a+b*dx)*(c+d*dx) = a*b+(b*c+a*d)*dx. The dual component represents the derivative of the primal with respect to a specific, hypothetical independent variable (here "x").
+
+The class will be just like num_wrapper but in addition to "value" it will have a "dual" member. We'll have to add another argument to 'create_dual_method' to specify the dual operation. This is just a function like
+
+    dual_plus = function(e1, e2) { e1$dual + e2$dual }
+
+or
+
+    dual_minus = function(e1, e2) {
+        if(exists(e2)) { e1$dual - e2$dual }
+        else { -e1$dual }
+    }
+
+Then at the end of wrapper_func, the specified dual function is called on the arguments to wrapper_func, to supply the dual component of the result. I moved the eval.parent call up so that 'args' is available for this:
+
+...
+    args <- as.list(match.call())[-1] # -1: exclude the function name itself
+    args <- lapply(args, eval.parent)
+    unwrapped_args <- lapply(args, function(arg) {
+...
+
+Can you implement this class for me?
+
+----------------
+
+Now I would like you to make another class like dual_number, but with an ability to store duals from multiple independent variables. We'll call it mdual_number. The $dual member will now be an array $mdual, with the first array dimension indexed by the independent variable of each dual component, and the remaining dimensions corresponding to the dimensions of the wrapped object (in $value). When an operation is performed on a collection of mdual_number's, we first must call a function to unify the sets of independent variables appearing in the various input mduals. To achieve this, we'll add another member $names to mdual_number, whose length is equal to the size of the first array dimension of $mdual. When performing an mdual operation, we first call a function sync_mduals. This function sync_mduals takes a list of mdual_number's and returns a list of the same length, but where each input mdual has been replaced by an identical one having an expanded $names member containing the union of all the input $names; you get the idea. The $mdual array must be appropriately padded with zeros when $names is expanded. A helper function may be appropriate called pad_mdual(x,new_names), which takes an mdual_number x and and expanded variable names member new_names, and (after checking that x$names is a subset of new_names) returns an mdual_number with a zero-padded $mdual and where $names is set to new_names. I hope that is not too much at once.
+
+----------------
+
+ran out of queries...
+# - use slice.index(x, 1) to get indices into $names
+#     and use slice.index(x, c(2,3)) to get indices into $value
+- rewrite to make $names the last dimension (rather than first) in $mdual
+- in pad_mdual
+    - use match() to get indices of new names
+    - turn $mdual into matrix by setting dim()
+    - use cbind to add zeroes, then the missing variables just refer to this zero column
+    - we can then reindex like this > m[1:2,c(2,3,1,3)]
