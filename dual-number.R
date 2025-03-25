@@ -53,7 +53,10 @@ create_dual_method = function(op, dual_op) {
     })
     
     primal_res = do.call(op_func, unwrapped_args)
-    dual_res = do.call(dual_op, wrapped_args)
+    # prepend primal_res to the argument list in case the function
+    # needs it (like dual_solve)
+    dual_args = c(list(primal_res), wrapped_args)
+    dual_res = do.call(dual_op, dual_args)
     dual_number(primal_res, dual_res)
   }
   
@@ -65,14 +68,14 @@ create_dual_method = function(op, dual_op) {
 # dual operations
 
 # Addition: (a + b*dx) + (c + d*dx) = (a + c) + (b + d)*dx
-dual_plus = function(e1, e2) {
+dual_plus = function(., e1, e2) {
   e1$dual + e2$dual
 }
 
 # Subtraction (binary and unary):
 # Binary: (a + b*dx) - (c + d*dx) = (a - c) + (b - d)*dx
 # Unary: -(a + b*dx) = (-a) + (-b)*dx
-dual_minus = function(e1, e2 = NULL) {
+dual_minus = function(., e1, e2 = NULL) {
   if (is.null(e2)) {
     -e1$dual  # Unary minus
   } else {
@@ -81,33 +84,66 @@ dual_minus = function(e1, e2 = NULL) {
 }
 
 # Multiplication: (a + b*dx) * (c + d*dx) = (a * c) + (b * c + a * d)*dx
-dual_mult = function(e1, e2) {
+dual_mult = function(., e1, e2) {
   e1$dual * e2$value + e1$value * e2$dual
 }
 
 # Division: (a + b*dx) / (c + d*dx) = (a / c) + ((b * c - a * d) / c^2)*dx
-dual_div = function(e1, e2) {
-  (e1$dual * e2$value - e1$value * e2$dual) / (e2$value)^2
+dual_div = function(val, e1, e2) {
+  # val is e1$value / e2$value, we can use that here
+  (e1$dual - val * e2$dual) / e2$value
+  ## (e1$dual * e2$value - e1$value * e2$dual) / (e2$value)^2
 }
 
 # transpose
-dual_t = function(x) {
+dual_t = function(., x) {
   return(t(x$dual))
 }
 
 # matrix multiplication
-dual_mat_mult = function(x,y) {
-  (x$value %*% y$dual) +
-    (x$dual %*% y$value)
+# XXX for mdual, we need a more general matrix multiplication
+# which it seems must be done by rearranging dimensions?
+# in the first term they are in the right order already
+# but for the second we need a t() to get the final dimension
+# first in front of last one and then another to get it after it again
+# -- which asks the question, should we be dualizing a more general
+# matrix multiplication function in the first place? or our users will
+# just be doing the same dimension shuffling so this is good
+dual_mat_mult = function(val, x,y) {
+  message("HERE");
+  (x$value %*% y$dual) + (x$dual %*% y$value)
 }
 
+dual_solve = function(val, a, b, ...) {
+  stopifnot(nrow(a) == ncol(a))
+  if(!missing(b)) {
+    # simplify division into inverse + mult
+    (solve(a) %*% b)$dual
+  } else {
+    # (don't know where this comes from)
+    # d/du A^-1 = - A^-1 d/du (A) A^-1
+    # don't forget the minus!
+    - val %*% (a$dual %*% val)
+  }
+}
+
+# realizing it's bad to automatically
+# promote the arguments to functions to dual_number
+# because we can't easily distinguish them from the 'dims'
+# argument. better to just ask user to call dual_number
+dual_rowSums = function(., x, dims) {
+  stop("not implemented")
+}
+
+# need: rowSums, colSums
 basic_dual_ops = list(
   "+"=dual_plus,
   "-"=dual_minus,
   "*"=dual_mult,
   "/"=dual_div,
   "t"=dual_t,
-  "%*%"=dual_mat_mult
+  "%*%"=dual_mat_mult,
+  "solve"=dual_solve
 )
 
 basic_ops = names(basic_dual_ops)
@@ -141,4 +177,5 @@ if(1) { # testing
   check_dual_op("*")(x,y)
   check_dual_op("t")(r)
   check_dual_op("%*%")(r,r)
+  check_dual_op("solve")(r)
 }

@@ -121,8 +121,7 @@ sync_mduals = function(mds) {
   res_mds
 }
 
-
-if(1) {
+if(0) {
   # tests:
   x = mdual_number(1, array(1), "dt")
   promote_mdual(x, c("du","dt"))
@@ -134,6 +133,8 @@ if(1) {
   y = mdual_number(4, array(1), "du")
   s = sync_mduals(list(x,y))
 }
+
+
 
 # - call sync_mduals from op method
 # - fill in the rest from dual-number.R
