@@ -38,10 +38,8 @@ create_dual_method = function(op, dual_op) {
   method_name = paste0(op, ".dual_number")
   
   # Define the wrapper function
-  wrapper_func = function() {
-    # Capture the arguments, excluding the function name
-    args = as.list(match.call())[-1]
-    # Evaluate arguments in the parent environment
+  wrapper_func = function(...) {
+    args = list(...)
     args = lapply(args, eval.parent)
     # create unwrapped arguments for op_func, leaving non-numerics
     # unchanged
@@ -57,9 +55,6 @@ create_dual_method = function(op, dual_op) {
     dual_res = do.call(dual_op, wrapped_args)
     dual_number(primal_res, dual_res)
   }
-  
-  # Set the formals to match the original function
-  formals(wrapper_func) = formals(args(op_func))
   
   # Register the method in the global environment
   assign(method_name, wrapper_func, envir = .GlobalEnv)
@@ -115,7 +110,7 @@ create_dual_method("%*%", dual_mat_mult)
 
 mysource("check-dual-ops.R")
 
-if(1) {
+if(1) { # testing
   x = dual_number(3, 1)  # 3 + 1*dx (derivative = 1)
   y = dual_number(2, -1)  # 2 + -1*dx
   z = x * y
@@ -134,5 +129,3 @@ if(1) {
   check_dual_op("t")(r)
   check_dual_op("%*%")(r,r)
 }
-
-
