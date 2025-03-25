@@ -4,7 +4,7 @@ Have first versions of tape_wrap, num_wrap, dual_number
 
 \- Fix dual_number double-evaluation
 
-- Fix auto-arg-promotion in num-wrap.R (and dual-number.R and tape-wrap.R)
+\- Fix auto-arg-promotion in dual-number.R and tape-wrap.R
 
 -> - Finish mdual_number
     - copy operations from dual

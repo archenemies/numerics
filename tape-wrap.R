@@ -80,8 +80,8 @@ create_method <- function(op) {
     wrapped_args <- lapply(seq_along(args), function(i) {
       arg = args[[i]]
       repr = arg_text[[i]]
-      # YYY in future must change is.numeric to include e.g. duals
-      if(!is.tape_wrap(arg) && is.numeric(arg)) {
+      # wrap all arguments, even strings and integers
+      if(!is.tape_wrap(arg)) {
         tape_var(arg, repr=repr)
       } else { arg }
     })

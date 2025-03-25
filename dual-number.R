@@ -47,15 +47,11 @@ create_dual_method = function(op, dual_op) {
     unwrapped_args = lapply(args, function(arg) {
       if (is.dual(arg)) { arg$value } else { arg }
     })
-    # create wrapped arguments for dual_op
-    wrapped_args = lapply(args, function(arg) {
-      if (is.numeric(arg)) { dual_number(arg, 0 * arg) } else { arg }
-    })
     
     primal_res = do.call(op_func, unwrapped_args)
     # prepend primal_res to the argument list in case the function
     # needs it (like dual_solve)
-    dual_args = c(list(primal_res), wrapped_args)
+    dual_args = c(list(primal_res), args)
     dual_res = do.call(dual_op, dual_args)
     dual_number(primal_res, dual_res)
   }
