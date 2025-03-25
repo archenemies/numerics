@@ -15,9 +15,10 @@ dual_number = function(value, dual=value*0) {
 is.dual = function(x) { inherits(x, "dual_number") }
 
 print.dual_number = function(x) {
-  cat("Primal\n")
+  cat("dual_number:\n")
+  cat("  primal\n")
   print(x$value)
-  cat("Dual\n")
+  cat("  dual\n")
   print(x$dual)
 }
 

@@ -45,15 +45,15 @@ format.mdual_number = function(x) {
 print.mdual_number = function(x) {
   ns = x$names
   cat("mdual_number: ", paste0(ns, collapse=","), "\n")
-  cat("  VALUE=\n")
+  cat("  primal\n")
   print(x$value)
   if(0) {
-    cat("  MDUAL=\n")
+    cat("  mdual\n")
     print(x$mdual)
   } else {
     stopifnot(length(ns) == lastDim(x$mdual))
     for(i in seq_along(ns)) {
-      cat("  DUAL[",i,"]= (",ns[i],")\n",sep="")
+      cat("  dual[",i,"]= (",ns[i],")\n",sep="")
       print(lastInd(x$mdual, i))
     }
   }
