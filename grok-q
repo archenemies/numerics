@@ -43,11 +43,3 @@ Now I would like you to make another class like dual_number, but with an ability
 ----------------
 
 ran out of queries...
-# - use slice.index(x, 1) to get indices into $names
-#     and use slice.index(x, c(2,3)) to get indices into $value
-- rewrite to make $names the last dimension (rather than first) in $mdual
-- in pad_mdual
-    - use match() to get indices of new names
-    - turn $mdual into matrix by setting dim()
-    - use cbind to add zeroes, then the missing variables just refer to this zero column
-    - we can then reindex like this > m[1:2,c(2,3,1,3)]
