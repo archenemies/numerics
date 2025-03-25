@@ -1,5 +1,6 @@
 # FHE 25 Mar 2025
 # List datatype with O(1) appends
+# --> it seems that by_index has been fixed so this is no longer necessary?
 
 # from https://stackoverflow.com/questions/2436688/append-an-object-to-a-list-in-r-in-amortized-constant-time-o1
 
