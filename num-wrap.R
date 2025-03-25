@@ -29,17 +29,8 @@ create_method <- function(op) {
 
     # match.call gives us language objects for some reason, and we
     # couldn't figure out how to use these without creating a double
-    # evaluation
-
-#    lang_args <- as.list(match.call())[-1] # -1: exclude the function name itself
-##    args <- lapply(lang_args, eval.parent)
-##    args <- do.call(list, lang_args)
-
-#    message("HERE A");
-
+    # evaluation. See history.
     args <- list(...);
-
-#    message("HERE B");
 
     unwrapped_args <- lapply(args, function(arg) {
       # must use eval:
