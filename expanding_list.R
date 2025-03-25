@@ -25,6 +25,7 @@ expanding_list <- function(capacity = 10) {
   environment()
 }
 
+# different version, doesn't save any time:
 expanding_list_methods <- function(capacity = 10) {
   buffer <- vector('list', capacity)
   length <- 0
