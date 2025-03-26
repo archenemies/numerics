@@ -10,5 +10,8 @@ Have first versions of tape_wrap, num_wrap, dual_number
     - copy operations from dual
     - matrix multiplication special technique
     - matrix inversion just do a loop
+    - testing facility like with dual
 
 - Make tape_wrap work with duals
+
+-> - Make it more self-contained and upload to github
