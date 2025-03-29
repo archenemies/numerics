@@ -1,0 +1,39 @@
+FHE 29 Mar 2025
+
+Some tasks that could be done in parallel to implementation of the main algorithm.
+
+- find a suitable word-vector database and figure out how to load it in R
+
+- wiktionary integration
+  - wrapper for wiktionary browsing
+    - proxy ("wk-proxy") that wraps Wiktionary pages and records user's browsing history
+    - words in the game are links to the corresponding wk-proxy pages
+    - each proxied wiktionary page should have a header that takes you back to the game
+    - when you browse wk-proxy, parameters are added to the URL that record the words you looked up. these become data points when you return to the game
+    - there is a 2048 byte length limit for URLs, but this translates to about 200 words which is fine for a session. so we can use GET and not POST.
+    - but doing it without javascript may be hard or ugly. perhaps every URL on every page will contain the entire history?
+      - can you wrap the whole page in a FORM and put the history in a "hidden" input field?
+      - can you encode the history in the URL as a directory (or sequence of directories), and make all the href's in the transformed wiktionary page relative to it?
+        - whatsharder.com/439=1/10945=0/23,2910=1/WK/aardvark
+          - in other words, user knows word number 439 but not 10945, moreover word 23 is harder than word 2910, and he's currently browsing Wiktionary for aardvark
+          - when he returns to the game the URL will be something like .../439=1/10945=0/23,2910=1/d_9482/ where d_ signifies a dictionary lookup of a word and 9482 is the hypothetical ID for aardvark
+    - thus no server-side storage is required
+
+  - we also need a tool to do obtain intersection of wiktionary language words and word-vector table words, one for each language
+    - similarly, for wikipedia article titles ("San Francisco")
+    - user can ask for words from multiple languages at once
+      - there is a single database of word vectors, but we use the user's language selection preference to restrict our attention when choosing the next one
+
+  - the primary features are word-vectors, but would it be useful to scrape other data-point features from Wiktionary (entry length, number of edits, number of translations, category tags)?
+
+- get pqR to compile on Arch and see if it runs our code (it has a much better startup latency than R, but it may be crazy)
+
+- i already wrote a tool that uses a perl CGI script to send commands to an R server process, I think using Expect? but it may be useful to investigate other solutions for use of R in a web server
+
+- figure out theoretical details of paper
+  - connection to gradient boosting, SLEs, Grover's algorithm, and so on
+  - how to use influence functions to estimate the usefulness of a feature, i.e. a column of X (rather than a data point, a row of X)
+
+- finish the paper experiments. the code is in a separate repo.
+
+

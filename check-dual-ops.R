@@ -16,7 +16,7 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
     wrapped_args = lapply(args, function(arg) {
       if (is.numeric(arg)) { dual_number(arg) } else { arg }
     })
-    
+
     u_res = do.call(op_func, unwrapped_args)
     u_delta_res = do.call(op_func, unwrapped_delta_args)
     dual_res = do.call(op_func, wrapped_args)

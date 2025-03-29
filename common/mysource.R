@@ -50,7 +50,7 @@ mysource_which = function(file,visit=T) {
 }
 
 # prepend path to search path
-# mysource_addpath = 
+# mysource_addpath =
 mysource_addpath = mysource_prepath = function(str) {
   str = mysource_expand(str);
   mySourcePath<<-c(str,mySourcePath);

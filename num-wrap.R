@@ -18,10 +18,10 @@ basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
 create_method <- function(op) {
   # the original function
   op_func <- get(op)
-  
+
   # the method name
   method_name <- paste0(op, ".num_wrap")
-  
+
   # define the wrapper function. we'll fill in the argument names
   # later
   wrapper_func <- function(...) {
@@ -45,10 +45,10 @@ create_method <- function(op) {
     # and return the wrapped result
     num_wrap(result)
   }
-  
+
   # fill in the arguments of wrapper_func to match op_func
 #  formals(wrapper_func) <- formals(args(op_func))
-  
+
   # now install the wrapper function
   assign(method_name, wrapper_func, envir = .GlobalEnv)
 }

@@ -65,10 +65,10 @@ basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
 create_method <- function(op) {
   # the original function
   op_func <- get(op)
-  
+
   # the method name
   method_name <- paste0(op, ".tape_wrap")
-  
+
   # define the wrapper function. we'll fill in the argument names
   # later
   wrapper_func <- function(...) {
@@ -93,7 +93,7 @@ create_method <- function(op) {
     new_repr = paste0(op, "(", paste0(input_reprs, collapse=","), ")")
     tape_wrap(result, op, input_ids, repr=new_repr)
   }
-  
+
   # now install the wrapper function
   assign(method_name, wrapper_func, envir = .GlobalEnv)
 }

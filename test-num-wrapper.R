@@ -29,7 +29,7 @@ for (op in bin_ops) {
       } else {
         val2 <- e2
       }
-      
+
       # Get the operator function (e.g., `+`, `*`) and apply it
       op_func <- get(op)
 #      browser()

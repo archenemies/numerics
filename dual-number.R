@@ -37,7 +37,7 @@ create_dual_method = function(op, dual_op) {
   op_func = get(op, envir = .GlobalEnv)
   # Define the S3 method name (e.g., "+.dual_number")
   method_name = paste0(op, ".dual_number")
-  
+
   # Define the wrapper function
   wrapper_func = function(...) {
     args = list(...)
@@ -47,7 +47,7 @@ create_dual_method = function(op, dual_op) {
     unwrapped_args = lapply(args, function(arg) {
       if (is.dual(arg)) { arg$value } else { arg }
     })
-    
+
     primal_res = do.call(op_func, unwrapped_args)
     # prepend primal_res to the argument list in case the function
     # needs it (like dual_solve)
@@ -55,7 +55,7 @@ create_dual_method = function(op, dual_op) {
     dual_res = do.call(dual_op, dual_args)
     dual_number(primal_res, dual_res)
   }
-  
+
   # Register the method in the global environment
   assign(method_name, wrapper_func, envir = .GlobalEnv)
 }
