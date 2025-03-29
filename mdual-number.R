@@ -138,3 +138,10 @@ if(0) {
 
 # - call sync_mduals from op method
 # - fill in the rest from dual-number.R
+
+# FHE 26 Mar 2025
+# - implement functions:
+#   - collapse_mdual
+#   - set_dim, get_dim
+#   - map_mdual (for mdual_solve?)
+#   - vec_mat_mul

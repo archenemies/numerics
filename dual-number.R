@@ -105,7 +105,12 @@ dual_t = function(., x) {
 # -- which asks the question, should we be dualizing a more general
 # matrix multiplication function in the first place? or our users will
 # just be doing the same dimension shuffling so this is good
-dual_mat_mult = function(val, x,y) {
+# -- use aperm() FHE 26 Mar 2025
+## > str(aperm(x,c(3,1,2)))
+##  int [1:4, 1:2, 1:3] 1 7 13 19 2 8 14 20 3 9 ...
+## > str(x)
+##  int [1:2, 1:3, 1:4] 1 2 3 4 5 6 7 8 9 10 ...
+dual_mat_mult = function(val, x, y) {
   message("HERE");
   (x$value %*% y$dual) + (x$dual %*% y$value)
 }
@@ -131,7 +136,10 @@ dual_rowSums = function(., x, dims) {
   stop("not implemented")
 }
 
-# need: rowSums, colSums
+# need: sum, aperm, rowSums, colSums
+# set_dim, [get_dim], vec_mat_mul
+# -- get_dim is just defined separately since it doesn't return a
+# dual_number
 basic_dual_ops = list(
   "+"=dual_plus,
   "-"=dual_minus,
