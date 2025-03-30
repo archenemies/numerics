@@ -1,0 +1,19 @@
+# FHE 30 Mar 2025
+
+# built-ins to override
+"+", "-",  "*", "/",
+"[", "t", "aperm",
+"%*%", "solve",
+"sum", "rowSums", "colSums",
+"exp", "log",
+"sin", "cos", "tan", "cosh", "sinh", "tanh",
+
+# new functions to override:
+"sigmoid"
+"set_dim"
+"tape_var"
+# needed for mdual %*%
+"vec_mat_mul" (i,j,l) * (j,k,l)
+
+"get_dim" -> define separately, as return value is not wrapped
+

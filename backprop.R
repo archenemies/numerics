@@ -207,13 +207,14 @@ tape_get_grad = function(x,y) {
 # TODO:
 # /- gradient calculation with backprop.
 #
-# - more operations (in addition to "+", "-", and "*" already defined): "/", "[", "t", "aperm", "%*%", "solve", "sum", "rowSums", "colSums"
 # - a way to test it: a function test_grad(xs,y) that uses numerical differentiation to find the gradient and check it against the one returned by grad().
 #   - compare tape_get_pert with tape_get_grad
+# - slightly more operations
 # - test with vectors/matrices
 # - functions for JVP and HVP
+# - more operations
 
-# - to do hvp (hessian-vector product):
+# Note: to do hvp (hessian-vector product):
 #   - we must run the computation over again with a dual number input
 #     - we can re-use the tape but only if there is special recognition for dual_number datatype
 #     - grad_dual(x,y) where x is a dual number (or list of them)

@@ -2,7 +2,13 @@ FHE 25 Mar 2025
 
 Have first versions of tape_wrap, num_wrap, dual_number
 
-- Implement backprop using tape_wrap
+\- Implement backprop using tape_wrap
+
+- backprop.R (see notes)
+  - Backprop testing
+  - Make tape_wrap work with duals and mduals
+
+- More operations in backprop.R, dual-number.R, mdual-number.R
 
 - Finish mdual_number
     - first finish certain things in dual_number
@@ -15,8 +21,6 @@ Have first versions of tape_wrap, num_wrap, dual_number
     - mdual_mat_mul -> can do vectorized
     - matrix inversion just do a loop
     - testing facility like with dual
-
-- Make tape_wrap work with duals and mduals
 
 \- Make it more self-contained and upload to github
 \- Fix dual_number double-evaluation
