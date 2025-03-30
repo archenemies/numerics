@@ -1,3 +1,5 @@
+# FHE 30 Mar 2025
+# try sourcing this file before you source any others
 
 source("common/mysource.R")
 mysource_addpath("common/")
