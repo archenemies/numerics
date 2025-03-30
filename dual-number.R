@@ -41,7 +41,7 @@ create_dual_method = function(op, dual_op) {
   # Define the wrapper function
   wrapper_func = function(...) {
     args = list(...)
-    args = lapply(args, eval.parent)
+
     # create unwrapped arguments for op_func, leaving non-numerics
     # unchanged
     unwrapped_args = lapply(args, function(arg) {
@@ -136,10 +136,8 @@ dual_rowSums = function(., x, dims) {
   stop("not implemented")
 }
 
-# need: sum, aperm, rowSums, colSums
-# set_dim, [get_dim], vec_mat_mul
-# -- get_dim is just defined separately since it doesn't return a
-# dual_number
+# list of all the dual operations we have defined
+# see operations.txt for a full list
 basic_dual_ops = list(
   "+"=dual_plus,
   "-"=dual_minus,
@@ -153,17 +151,14 @@ basic_dual_ops = list(
 basic_ops = names(basic_dual_ops)
 # 'for' causes broken lexical scoping so use lapply
 lapply(seq_along(basic_ops), function(i) {
-#  pv(i,basic_ops[[i]],basic_dual_ops[[i]])
-  create_dual_method(
-    basic_ops[[i]],
-    basic_dual_ops[[i]])
+  create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
 })
 
 # ----------------------------------------------------------------
 
 mysource("check-dual-ops.R")
 
-if(1) { # testing
+test_dual_number1 = function() { # testing
   x = dual_number(3, 1)  # 3 + 1*dx (derivative = 1)
   y = dual_number(2, -1)  # 2 + -1*dx
   z = x * y
@@ -183,3 +178,5 @@ if(1) { # testing
   check_dual_op("%*%")(r,r)
   check_dual_op("solve")(r)
 }
+
+test_dual_number1()

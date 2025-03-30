@@ -4,9 +4,8 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
   op_func <- get(op, envir = .GlobalEnv)
 
   # from wrapper_func in create_dual_method
-  checker_func = function() {
-    args = as.list(match.call())[-1]
-    args = lapply(args, eval.parent)
+  checker_func = function(...) {
+    args = list(...)
     unwrapped_args = lapply(args, function(arg) {
       if (is.dual(arg)) { arg$value } else { arg }
     })
@@ -35,6 +34,5 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
     }
     invisible(good)
   }
-  formals(checker_func) = formals(args(op_func))
   checker_func
 }
