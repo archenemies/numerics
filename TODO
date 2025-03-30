@@ -4,6 +4,11 @@ Have first versions of tape_wrap, num_wrap, dual_number
 
 \- Implement backprop using tape_wrap
 
+- cleanup
+  - each file should have separate test file?
+  - use my-source-delegate to source the test file during development
+  - run-tests?
+
 - backprop.R (see notes)
   - Backprop testing
   - Make tape_wrap work with duals and mduals
