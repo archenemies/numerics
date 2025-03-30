@@ -1,7 +1,21 @@
 # FHE 25 Mar 2025
 # from num-wrap.R
 
-#mysource("expanding_list.R")
+# define the tape_wrap class
+tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
+  stop_if_no_tape()
+  # FHE 30 Mar 2025 sanity check, remove this if you actually want to
+  # double-wrap:
+  stopifnot(!is.tape_wrap(value))
+  stopifnot(is.integer(inputs))
+  stopifnot(is.character(repr))
+  res = structure(
+    list_vars(value, repr, op, inputs),
+    class = "tape_wrap")
+  res$id = .tape$next_id()
+  .tape$add(res)
+  res
+}
 
 new_tape <- function() {
   buf <- list()
@@ -19,13 +33,16 @@ new_tape <- function() {
   environment()
 }
 show_tape = function() {
+  # XXX print in columns and use maximum field width
   with(.tape, {
     cat("Tape of length ",length, "\n");
     for(i in 1 %upto% length) {
       ent = buf[[i]]
       cat("id=",ent$id, " op=",deparse(ent$op),
-        " inputs=",deparse(ent$inputs),": ",
-        deparse(ent$repr),"\n")
+        " inputs=",deparse(ent$inputs),
+        " repr=",deparse(ent$repr),
+        " value=",deparse(ent$value),
+        "\n")
     }
   })
 }
@@ -39,31 +56,45 @@ stop_if_no_tape <- function() {
   }
 }
 
-# define the tape_wrap class
-tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
-  stop_if_no_tape()
-#  pv(inputs)
-  stopifnot(is.integer(inputs))
-  stopifnot(is.character(repr))
-  res = structure(
-    list_vars(value, repr, op, inputs),
-    class = "tape_wrap")
-  res$id = .tape$next_id()
-  .tape$add(res)
+# wrap a value in a tape_wrap object with no inputs
+# creates an "independent variable"
+tape_var <- function(...) {
+  args = list(...)
+  reprs = substitute(...()) # gets deparsed later
+  for(i in seq_along(args)) {
+    value = args[[i]]
+    name = names(args)[[i]]
+    repr = deparse(reprs[[i]])
+    if(!is.null(name) && name != "") {
+      repr = paste0(name, "=", repr)
+    }
+    res = tape_wrap(value, "tape_var", integer(), repr=repr)
+    if(!is.null(name) && name != "") {
+      message("Assigning ",name," = ",deparse(value))
+      assign(name, res, envir=parent.frame())
+    }
+  }
+  # return the value of the last assignment
   res
 }
-
-tape_var <- function(value) {
-  repr = deparse(substitute(value))
+tape_var_repr <- function(value, repr) {
   tape_wrap(value, "tape_var", integer(), repr=repr)
 }
 
 is.tape_wrap <- function(x) { inherits(x, "tape_wrap") }
 
+print.tape_wrap <- function(x) {
+  cat("tape_wrap:\n")
+  cat("  op=",x$op,", repr=",x$repr,"\n")
+  cat("  inputs=",deparse(x$inputs),"\n")
+  cat("  value\n")
+  print(x$value)
+}
+
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
 
-# Function to create and assign the method
+# Function to create and assign a tape_wrap method for 'op'
 create_method <- function(op) {
   # the original function
   op_func <- get(op)
@@ -84,7 +115,7 @@ create_method <- function(op) {
       repr = arg_text[[i]]
       # wrap all arguments, even strings and integers
       if(!is.tape_wrap(arg)) {
-        tape_var(arg, repr=repr)
+        tape_var_repr(arg,repr)
       } else { arg }
     })
     # the primary quantity:
@@ -104,20 +135,23 @@ for (op in basic_ops) {
   create_method(op)
 }
 
+mysource("export.R")
+
 test_tape1 = function() {
   # compute (1+2)*2*5
-  x<<-tape_var(1); y<<-tape_var(2);
-  z <<- x+y
-  ## x=1; y=2;
-  ## z = tape_var(x) + tape_var(y)
+  y <- tape_var(2);
+  pv(y)
+  tape_var(x=1, v=5);
+  pv(x,v)
+  z <- x+y
   pv(z)
-  w <<- z*tape_var(2)
-  v <<- 5
-  q <<- w*tape_var(v)
-  pv(q)
+  w <- z*tape_var(2)
+  qq <- w*v
+  pv(qq)
+  export(x,y,z,w,v,qq)
 }
 
-if(0) {
+if(1) {
   tape_init()
   test_tape1()
   show_tape()

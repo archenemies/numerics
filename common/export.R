@@ -1,3 +1,7 @@
+# FHE 30 Mar 2025 (written over a decade ago)
+# assign a list of names in the global environment
+# useful with testing
+# (should assign in parent.frame instead?)
 
 ## export = function(x) {
 ##   assign(deparse(substitute(x)), x,

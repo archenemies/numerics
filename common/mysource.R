@@ -1,4 +1,15 @@
 # FHE ?? very old
+
+# Source an R script like source(), but look for it in a list of
+# directories (like with the Unix PATH variable). Also record a list
+# of all the files that have been sourced, so that we can do
+# dependency analysis.
+
+# FHE 30 Mar 2025 this is one of the oldest R scripts I have written
+# and perhaps should be rewritten, probably as a wrapper to 'source'
+# so that we can use the same syntax? or at least we should provide
+# such a wrapper?
+
 {
   # pick up verbosity level from shell environment and from R global
   # environment
