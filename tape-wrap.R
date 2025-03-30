@@ -1,7 +1,7 @@
 # FHE 25 Mar 2025
 # from num-wrap.R
 
-mysource("expanding_list.R")
+#mysource("expanding_list.R")
 
 new_tape <- function() {
   buf <- list()
@@ -12,6 +12,8 @@ new_tape <- function() {
     buf[[length]] <<- val
   }
   get <- function(ix) {
+    stopifnot(ix <= length)
+    stopifnot(ix >= 1)
     buf[[ix]]
   }
   environment()
@@ -102,16 +104,21 @@ for (op in basic_ops) {
   create_method(op)
 }
 
-if(1) {
-  tape_init()
-  x=tape_var(1); y=tape_var(2);
-  z = x+y
+test_tape1 = function() {
+  # compute (1+2)*2*5
+  x<<-tape_var(1); y<<-tape_var(2);
+  z <<- x+y
   ## x=1; y=2;
   ## z = tape_var(x) + tape_var(y)
   pv(z)
-  w = 3
-  v = 5
-  q = tape_var(w)*tape_var(v)
+  w <<- z*tape_var(2)
+  v <<- 5
+  q <<- w*tape_var(v)
   pv(q)
+}
+
+if(0) {
+  tape_init()
+  test_tape1()
   show_tape()
 }
