@@ -65,6 +65,6 @@ if(0) {
  plot(xs,sigmoid(xs,4))
 }
 
-# FHE 08 Aug 2024 cad = cat deparse
-cad = function(expr) { cat(deparse1(expr),"\n") }
+# FHE 08 Aug 2024 catd = cat deparse
+catd = function(expr) { cat(deparse1(expr),"\n") }
 
