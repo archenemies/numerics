@@ -3,6 +3,8 @@
 # edited by adding eval.parent call to get it to work
 # was test-num-wrapper-2.R
 
+# Not used except as an example
+
 # define the num_wrap class
 num_wrap <- function(value) {
   message("in num_wrap: ",deparse(value))
@@ -47,6 +49,7 @@ create_method <- function(op) {
   }
 
   # fill in the arguments of wrapper_func to match op_func
+  # (this only worked with match.call above:)
 #  formals(wrapper_func) <- formals(args(op_func))
 
   # now install the wrapper function

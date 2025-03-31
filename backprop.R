@@ -1,3 +1,4 @@
+# -*- my-source-delegate: "test-backprop.R" -*-
 # FHE 26 Mar 2025
 # backpropagation using tape-wrap.R
 mysource("tape-wrap.R")
@@ -228,17 +229,3 @@ tape_get_grad = function(x,y) {
 #           - d/dx(dy/dt) = f''(x) * x'
 #           - is it written better in the paper?
 #         - we are only interested in the backpropagated primal?
-
-test_backprop = function() {
-  tape_init()
-  test_tape1()
-  show_tape()
-  pv(get_desc_list(x))
-  pv(get_desc_list(x, xaux=1.01, type="pert"))
-  stopifnot(tape_get_pert(x,1.02,q)==30.2)
-  stopifnot(tape_get_grad(x,q)==10)
-}
-
-
-
-test_backprop()

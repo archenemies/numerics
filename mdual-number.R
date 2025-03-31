@@ -1,5 +1,12 @@
+# -*- my-source-delegate: "test-mdual-number.R" -*-
 # FHE 24 Mar 2025
-# https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
+# Defines mdual_number class
+
+# For arithmetic with propagation of multiple (independent) dual
+# number components
+
+# First version with a very little help from Grok
+# https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa
 
 mysource("lastind.R")
 
@@ -121,27 +128,10 @@ sync_mduals = function(mds) {
   res_mds
 }
 
-if(0) {
-  # tests:
-  x = mdual_number(1, array(1), "dt")
-  promote_mdual(x, c("du","dt"))
-
-  arr = array(1:24, c(2,3,4))
-  ax = mdual_number(arr, vector_of(arr), "dt")
-  promote_mdual(ax, c("dt","du"))
-
-  y = mdual_number(4, array(1), "du")
-  s = sync_mduals(list(x,y))
-}
-
-
-
 # - call sync_mduals from op method
 # - fill in the rest from dual-number.R
 
 # FHE 26 Mar 2025
 # - implement functions:
 #   - collapse_mdual
-#   - set_dim, get_dim
-#   - map_mdual (for mdual_solve?)
-#   - vec_mat_mul
+#   - operations in operations.txt

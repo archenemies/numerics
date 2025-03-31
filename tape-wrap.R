@@ -1,3 +1,4 @@
+# -*- my-source-delegate: "test-tape-wrap.R" -*-
 # FHE 25 Mar 2025
 # from num-wrap.R
 
@@ -85,7 +86,8 @@ print.tape_wrap <- function(x) {
   print(x$value)
 }
 
-mysource("generic-deparse.R")
+# this will only do anything if we also source
+# mysource("generic-deparse.R")
 deparse.tape_wrap = function(tw) {
   paste0("tape_wrap(",deparse(tw$value),
     ",",deparse(tw$op),
@@ -135,26 +137,4 @@ create_method <- function(op) {
 
 for (op in basic_ops) {
   create_method(op)
-}
-
-mysource("export.R")
-
-test_tape1 = function() {
-  # compute (1+2)*2*5
-  y <- tape_var(2);
-  pv(y)
-  tape_var(x=1, v=5);
-  pv(x,v)
-  z <- x+y
-  pv(z)
-  w <- z*tape_var(2)
-  qq <- w*v
-  pv(qq)
-  export(x,y,z,w,v,qq)
-}
-
-if(1) {
-  tape_init()
-  test_tape1()
-  show_tape()
 }

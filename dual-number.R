@@ -1,3 +1,4 @@
+# -*- my-source-delegate: "test-dual-number.R" -*-
 # FHE 24 Mar 2025
 # class for dual numbers in R
 # from https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
@@ -154,29 +155,3 @@ lapply(seq_along(basic_ops), function(i) {
   create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
 })
 
-# ----------------------------------------------------------------
-
-mysource("check-dual-ops.R")
-
-test_dual_number1 = function() { # testing
-  x = dual_number(3, 1)  # 3 + 1*dx (derivative = 1)
-  y = dual_number(2, -1)  # 2 + -1*dx
-  z = x * y
-  # Primal: 3 * 2 = 6
-  # Dual: (1 * 2 + 3 * 0) = 2
-  pv(z)
-
-  m = matrix(1:4, nrow = 2)
-  r = t(dual_number(m, m*2))
-  pv(r)
-
-  check_dual_op("+")(x,y)
-  check_dual_op("/")(x,y)
-  check_dual_op("-")(x,y)
-  check_dual_op("*")(x,y)
-  check_dual_op("t")(r)
-  check_dual_op("%*%")(r,r)
-  check_dual_op("solve")(r)
-}
-
-test_dual_number1()

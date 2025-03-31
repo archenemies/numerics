@@ -5,8 +5,13 @@ source("common/mysource.R")
 mysource_addpath("common/")
 mysource_addpath(".")
 
+# source stuff in common/
 mysource("pv.R")
 mysource("util.R")
+mysource("export.R")
+mysource("lastind.R")
+
+mysource("generic-deparse.R")
 
 if(Sys.getenv("STY") != "") {
   message("Setting screen window to 13");
