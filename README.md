@@ -5,3 +5,5 @@
 * Try sourcing `startup.R` first
 
 * The main files should have comments and test cases
+
+* Dependencies: R, expect

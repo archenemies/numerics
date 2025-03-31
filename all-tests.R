@@ -7,14 +7,28 @@
 # independence. 'export' should probably be changed to export to the
 # parent frame. XXX
 
+# -> TEST_FILTER environment variable also specifies a regex to match
+# test names against
+
 source_tests = function(fn) {
-  message("Running test batch: ",fn);
+  filt = Sys.getenv("TEST_FILTER")
+  message("Sourcing test batch: ",fn);
   source(local=TRUE, fn);
   tests = grep("^test_",ls(),value=T)
   for(i in seq_along(tests)) {
-    message("Test ",i,": ",tests[[i]])
-    do.call(tests[[i]],list())
-    message("Passed test ",i,": ",tests[[i]])
+    tn = tests[[i]]
+    if(filt!="") {
+      enabled = grepl(filt, tests[[i]])
+    } else {
+      enabled = TRUE
+    }
+    if(enabled) {
+      message("Running test ",i,": ",tn)
+      do.call(tn,list())
+      message("Passed test ",i,": ",tn)
+    } else {
+      message("Eliding test ",i,": ",tn," (TEST_FILTER=",filt,")")
+    }
   }
 }
 
