@@ -1,0 +1,10 @@
+#!/usr/bin/expect
+# FHE 31 Mar 2025 modified from
+# https://stackoverflow.com/questions/5843741/how-can-i-pipe-initial-input-into-process-which-will-then-be-interactive
+
+spawn bc
+send {obase=16
+}
+interact {
+ \003 exit
+}

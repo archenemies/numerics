@@ -1,4 +1,3 @@
-# -*- my-source-delegate: "test-tape-wrap.R" -*-
 # FHE 25 Mar 2025
 # from num-wrap.R
 
@@ -65,7 +64,7 @@ tape_var <- function(...) {
     }
     res = tape_wrap(value, "tape_var", integer(), repr=repr)
     if(!is.null(name) && name != "") {
-      message("Assigning ",name," = ",deparse(value))
+      # message("Assigning ",name," = ",deparse(value))
       assign(name, res, envir=parent.frame())
     }
   }
@@ -137,4 +136,9 @@ create_method <- function(op) {
 
 for (op in basic_ops) {
   create_method(op)
+}
+
+if(mySourceLevel==0) {
+  mysource("test-tape-wrap.R")
+  test_tape1()
 }

@@ -29,6 +29,11 @@ if(!exists("mySourcePath")) { # FHE 21 Jun 2021 for eqtool
 }
 if(!exists("mySourcedFiles")) { mySourcedFiles <<- list();
 } else { ms_vmsg("Using pre-existing file list"); }
+if(!exists("mySourceLevel")) {
+  # FHE 31 Mar 2025 for code with tests at the end
+  # so we can only run them when sourced from REPL
+  mySourceLevel <<- 0
+}
 
 findFileInPath=function(file,path) {
   for(p in path) {
@@ -91,6 +96,10 @@ mysource <- function(..., force=F) {
     ms_vmsg("Sourcing ",fp);
     mysource_current <<- fp
     mySourcedFiles[[fp]] <<- "current";
+    # XXX put something here to let the file know whether we are
+    # being sourced from the toplevel
+    mySourceLevel <<- mySourceLevel+1
+    on.exit({mySourceLevel <<- mySourceLevel-1})
     source(fp)
     # FHE 17 Feb 2020 moved this below in case it fails
     ms_vmsg("Done sourcing ",fp,level=1);

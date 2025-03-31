@@ -1,0 +1,10 @@
+#!/usr/bin/expect
+# FHE 31 Mar 2025 from run-tests
+
+spawn R --vanilla --quiet
+send {
+source("startup.R")
+}
+interact {
+ \003 exit
+}

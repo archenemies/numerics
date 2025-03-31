@@ -4,7 +4,7 @@
 mysource("tape-wrap.R")
 mysource("export.R")
 
-test_tape1 = function() {
+setup_tape1 = function(export=F) {
   # compute (1+2)*2*5
   y <- tape_var(2);
   pv(y)
@@ -15,11 +15,12 @@ test_tape1 = function() {
   w <- z*tape_var(2)
   qq <- w*v
   pv(qq)
-  export(x,y,z,w,v,qq)
+  if(export)
+    export(x,y,z,w,v,qq)
 }
 
-if(1) {
+test_tape1 = function() {
   tape_init()
-  test_tape1()
+  setup_tape1()
   show_tape()
 }

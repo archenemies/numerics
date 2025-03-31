@@ -1,4 +1,3 @@
-# -*- my-source-delegate: "test-dual-number.R" -*-
 # FHE 24 Mar 2025
 # class for dual numbers in R
 # from https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
@@ -155,3 +154,8 @@ lapply(seq_along(basic_ops), function(i) {
   create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
 })
 
+pv(mySourceLevel)
+if(mySourceLevel==0) {
+  mysource("test-dual-number.R")
+  test_dual_number1()
+}

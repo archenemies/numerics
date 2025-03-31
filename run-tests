@@ -1,0 +1,16 @@
+#!/usr/bin/expect
+# FHE 31 Mar 2025
+
+# run tests. sometimes a failed test will enter REPL through browser()
+# and so we need to have an interactive session. Unfortunately, `R -e
+# expr --interactive` doesn't do what you'd expect in this case, and
+# so we need to spawn R through an expect script.
+
+spawn R --vanilla --quiet
+send {
+source("startup.R")
+source("all-tests.R")
+}
+interact {
+ \003 exit
+}

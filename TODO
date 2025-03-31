@@ -1,18 +1,22 @@
 FHE 30 Mar 2025
 
 -> \- split out testing into separate files
-  - also need all-tests.R and run-tests
+  \- also need all-tests.R and run-tests
   - figure out testing workflow
-    - want to only run some tests usually, but all tests sometimes
-    - define a variable in the all-tests.R
-    - this causes us to not run any tests, just define them
-    - later we run all tests named test_
-      grep("^test_",ls(),value=T)
-    - at the top of all-tests.R, make a note of any functions with this name and ignore them later (e.g. test_bigplotfix), using once.R . or just set them manually
-    - TEST_FILTER environment variable also specifies a regex to match these names against
-    - source startup.R
-    - need a script to run all-tests.R from the command-line
+    - names(.GlobalEnv) is random, so plan B:
+    \- source(local=TRUE) to get test_ functions
+    \- special function to source a test file in all-tests.R
 
+    /- want to only run some tests usually, but all tests sometimes
+    /- define a variable in the all-tests.R
+    /- this causes us to not run any tests, just define them
+    \- modify mysource.R to tell us the level, and only run tests at the top level in each file
+    \- later we run all tests named test_
+      grep("^test_",ls(),value=T)
+    /- at the top of all-tests.R, make a note of any functions with this name and ignore them later (e.g. test_bigplotfix), using once.R . or just set them manually
+    -> - TEST_FILTER environment variable also specifies a regex to match these names against
+    \- source startup.R [via run-R and run-tests expect scripts]
+    \- need a script to run all-tests.R from the command-line [run-tests]
 
 (handwritten notes from last night)
 - tape should be a ref, set it up with use_tape()

@@ -1,5 +1,7 @@
 # FHE 30 Mar 2025 split off from dual-number.R
 
+mysource("dual-number.R")
+
 mysource("check-dual-ops.R")
 
 test_dual_number1 = function() { # testing
@@ -22,5 +24,3 @@ test_dual_number1 = function() { # testing
   check_dual_op("%*%")(r,r)
   check_dual_op("solve")(r)
 }
-
-test_dual_number1()
