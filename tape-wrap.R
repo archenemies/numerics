@@ -33,18 +33,12 @@ new_tape <- function() {
   environment()
 }
 show_tape = function() {
-  # XXX print in columns and use maximum field width
-  with(.tape, {
-    cat("Tape of length ",length, "\n");
-    for(i in 1 %upto% length) {
-      ent = buf[[i]]
-      cat("id=",ent$id, " op=",deparse(ent$op),
-        " inputs=",deparse(ent$inputs),
-        " repr=",deparse(ent$repr),
-        " value=",deparse(ent$value),
-        "\n")
-    }
-  })
+  # just create a data frame with the tape data, and print it
+  ents = .tape$buf
+  df = as.data.frame(do.call(rbind,ents))
+  cat("Tape of length ",.tape$length, "\n");
+  print(df)
+  # TODO: use maximum field width to truncate long strings
 }
 
 tape_init <- function() {
@@ -89,6 +83,14 @@ print.tape_wrap <- function(x) {
   cat("  inputs=",deparse(x$inputs),"\n")
   cat("  value\n")
   print(x$value)
+}
+
+mysource("generic-deparse.R")
+deparse.tape_wrap = function(tw) {
+  paste0("tape_wrap(",deparse(tw$value),
+    ",",deparse(tw$op),
+    ",",deparse(tw$inputs),
+    ",repr=",deparse(tw$repr),")")
 }
 
 # list of operators/functions to override

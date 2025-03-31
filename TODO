@@ -1,17 +1,13 @@
 FHE 30 Mar 2025
 
-\- tape_var(x=3) -> sets x=3 in parent frame and uses this as repr
-\- print.tape_wrap
-\- show_tape needs values
+\- improve tape printing
+    - deparse for other objects
 - split out testing into separate files
+    - also all-tests.R and run-tests
 
 ----------------
 
 FHE 25 Mar 2025
-
-Have first versions of tape_wrap, num_wrap, dual_number
-
-\- Implement backprop using tape_wrap
 
 - cleanup
   - each file should have separate test file?
