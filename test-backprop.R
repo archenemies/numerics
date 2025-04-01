@@ -8,27 +8,74 @@ mysource("test-tape-wrap.R")
 test_01_pert = function() {
   message("In test_01_pert")
   use_tape(new_tape())
-  setup_tape1(export=TRUE)
+  setup_tape1()
   show_tape()
   pv(forward_traverse(x))
   pv(forward_traverse(x, xaux=1.01, type="pert"))
   stopifnot(tape_get_pert(x,1.02,qq)==30.2)
   stopifnot(tape_get_grad(x,qq)==10)
+  check_tape_grad_pert(x,qq)
   message("Passed test_pert")
 }
 
-test_02_pert = function() {
-  message("In test_02_pert")
-  use_tape(new_tape())
-  setup_tape2(export=TRUE)
-  show_tape()
+tape_pert_numdiff = function(x,y,h=1e-4) {
+  xp = x$value + h;
+  yp = tape_get_pert(x, xp, y)
+  (yp-y$value)/h
+}
+check_tape_grad_pert = function(x,y,tol=1e-2) {
+  message("check_tape_grad_pert: checking derivative of ",sv(y)," with respect to ",sv(x))
+  dp = tape_pert_numdiff(x,y)
+  dg = tape_get_grad(x,y)
+  pv(dp,dg)
+  if(abs(dp-dg)<tol) {
+    message("passed");
+  } else {
+    stop("failed: ",dp," != ",dg)
+  }
+  dg
+}
 
-  # XXX check values
-  # XXX figure out what we are doing here
-  pv(forward_traverse(x))
-  pv(forward_traverse(x, xaux=2.01, type="pert"))
-  pv(tape_get_pert(x,2.01,y))
+test_02_pert = function() {
+  # test type="pert" forward_traverse with tape 2
+  # also check wrap=T
+
+  use_tape(new_tape())
+  setup_tape2()
+  stopifnot(.tape$length==8)
   pv(tape_get_grad(x,y))
+  check_tape_grad_pert(x,y)
+
+  # now check that wrapped pert has the same grad
+  y_inputs = all_inputs(y)
+  tape_var(x1=x$value)
+  l = forward_traverse(x, xaux=x1, type="pert", restrict_ids=y_inputs, wrap=T)
+  y1 = l[[y$id]]
+  stopifnot(is.tape_wrap(y1))
+  pv(tape_get_grad(x1,y1))
+  stopifnot(.tape$length == 13)
+
   message("Passed test_02_pert")
 }
 
+test_03_grad_wrap = function() {
+  # use tape 2, calculate a wrapped gradient
+  # so that we can get second derivative
+  use_tape(new_tape())
+  setup_tape2()
+  stopifnot(.tape$length==8)
+#  pv(tape_get_grad(x,y))
+
+  show_tape()
+  g=pv(tape_get_grad(x,y,wrap=T))
+  show_tape()
+  g2=pv(tape_get_grad(x,g))
+  stopifnot(g2==4)
+  message("Passed test_03_grad_wrap")
+}
+
+if(mySourceLevel==0) {
+  mysource("test-backprop.R")
+#  test_01_pert()
+  test_03_grad_wrap()
+}

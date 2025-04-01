@@ -147,7 +147,8 @@ create_method <- function(op) {
       repr = arg_text[[i]]
       # wrap all arguments, even strings and integers
       if(!is.tape_wrap(arg)) {
-        tape_var_repr(arg,repr)
+        stop("All arguments should be wrapped: op=",op)
+#        tape_var_repr(arg,repr)
       } else { arg }
     })
     # the primary quantity:
@@ -166,6 +167,11 @@ create_method <- function(op) {
 
 for (op in basic_ops) {
   create_method(op)
+}
+
+# we don't expect dim() to return a wrapped value
+dim.tape_wrap = function(x) {
+  dim(x$value)
 }
 
 if(mySourceLevel==0) {

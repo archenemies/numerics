@@ -1,3 +1,4 @@
+# -*- my-source-delegate: "test-backprop.R" -*-
 # FHE 26 Mar 2025
 # backpropagation using tape-wrap.R
 mysource("tape-wrap.R")
@@ -73,6 +74,10 @@ list_exists = function(l,id) {
 #   - accum: return a list of zero'ed accumulators for grad
 #   - pert: recompute parts of the computation
 # xaux: auxiliary value for "pert" and "dual" types
+# restrict_ids: restrict our attention to these tape cells (typically,
+#   ancestors of an objective)
+# wrap: if true then expect xaux to be a tape_wrap object, and produce
+#   tape_wrap'ped output
 forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
   restrict_ids=NULL, wrap=FALSE) {
   stop_if_no_tape()
@@ -88,7 +93,10 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
     # accumulators for dependents of x. in case wrap==T, we don't
     # actually depend on the original tape cell ent, so we create a
     # new tape_var with the zero value
-    l[[ent$id]] <<- maybe_wrap(ent$value*0)
+    zeroval = ent$value*0
+    # if recording, give accums a distinct repr:
+    if(wrap) zeroval = tape_var_repr(zeroval,"init_accum")
+    l[[ent$id]] <<- zeroval;
   }
   add_pert_entry = function(ent, dual=1) {
     # we add x specially. after that we call this
@@ -143,6 +151,7 @@ tape_get_pert = function(x,xaux,y) {
   l[[y$id]]
 }
 
+# ----------------------------------------------------------------
 # tape_get_grad: gradient calculation with backprop
 #   tape_get_grad(x,y) - x and y are tape_wrap's
 #     x must be wrapping a numeric
@@ -155,15 +164,26 @@ tape_get_pert = function(x,xaux,y) {
 
 # Notes: 1. this algorithm may not be optimal for all-paths (?) but its running time is dwarfed by the actual computation
 # 2. we have opted not to add entries to the tape when computing the gradient, that would be a simple modification but we're not sure we would use it
+
+# arguments: wrap, if true then record the gradient calculation on the tape
 tape_get_grad = function(x,y,wrap=F) {
   stop_if_no_tape()
+  stopifnot(length(y$value)==1)
+
   # call forward_traverse
   y_inputs = all_inputs(y)
-  accums = forward_traverse(x, type="init_accum", restrict_ids=y_inputs)
-  new_inputs = y$id
+  if(!x$id %in% y_inputs) {
+    stop("tape_get_grad: y not a descendent of x")
+  }
+
+  accums = forward_traverse(x, type="init_accum",
+    restrict_ids=y_inputs, wrap=wrap)
   stopifnot(list_exists(accums,y$id))
-  stopifnot(length(y$value)==1)
-  accums[[y$id]] = 1
+
+  if(wrap) accums[[y$id]] = tape_var(1)
+  else accums[[y$id]] = 1
+
+  new_inputs = y$id
   while(length(new_inputs)>0) {
     next_iid = new_inputs[1]
     new_inputs = new_inputs[-1]
@@ -172,15 +192,19 @@ tape_get_grad = function(x,y,wrap=F) {
       ent = .tape$get(next_iid)
       inputs = ent$inputs
       adj_out = accums[[next_iid]]
-      val = ent$value
+      input_ents = .tape$buf[inputs]
       # what is tape_var doing with inputs? it creates a new tape_var for stuff like dim. so we can't assume that val is numeric
-      # we need to gather the unwrapped input values from the tape
+      # we need to gather the input values from the tape
       # then get the list of input adjoints from the back_OP in basic_back_ops
-      unwrapped_inputs = lapply(inputs,
-        function(iid) { .tape$get(iid)$value })
-      args = c(adj_out, val, unwrapped_inputs)
+      if(!wrap) {
+        val = ent$value
+        unwrapped_inputs = lapply(input_ents, untapewrap)
+        args = append(list(adj_out, ent), unwrapped_inputs)
+      } else {
+        stopifnot(is.tape_wrap(adj_out))
+        args = append(list(adj_out, ent), input_ents)
+      }
       back_op = back_ops[[ent$op]]
-      pv(ent$op)
       stopifnot(!is.null(back_op))
       # get the list of input adjoitns from adj_out and the other arguments
       res = do.call(back_op, args)
@@ -189,7 +213,8 @@ tape_get_grad = function(x,y,wrap=F) {
       for(i in seq_along(res)) {
         if(!is.null(res[[i]])) {
           r = res[[i]]
-          stopifnot(is.numeric(r))
+          if(!wrap) { stopifnot(is.numeric(r)) }
+          else { stopifnot(is.tape_wrap(r)) }
           iid = inputs[i]
           if(list_exists(accums, iid)) {
             stopifnot(identical(dim(r),dim(accums[[iid]])))
@@ -204,13 +229,15 @@ tape_get_grad = function(x,y,wrap=F) {
   }
   accums[[x$id]]
 }
-
+# ----------------------------------------------------------------
 
 # TODO:
-# /- gradient calculation with backprop.
+# \- gradient calculation with backprop.
 #
-# - a way to test it: a function test_grad(xs,y) that uses numerical differentiation to find the gradient and check it against the one returned by grad().
-#   - compare tape_get_pert with tape_get_grad
+# \- a way to test it: a function test_grad(xs,y) that uses numerical differentiation to find the gradient and check it against the one returned by grad().
+#   \- compare tape_get_pert with tape_get_grad
+#   \-> check_tape_grad_pert
+
 # - slightly more operations
 # - test with vectors/matrices
 # - functions for JVP and HVP
@@ -230,8 +257,3 @@ tape_get_grad = function(x,y,wrap=F) {
 #           - d/dx(dy/dt) = f''(x) * x'
 #           - is it written better in the paper?
 #         - we are only interested in the backpropagated primal?
-
-if(mySourceLevel==0) {
-  mysource("test-backprop.R")
-  test_02_pert()
-}
