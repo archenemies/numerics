@@ -17,17 +17,14 @@ source_tests = function(fn) {
   tests = grep("^test_",ls(),value=T)
   for(i in seq_along(tests)) {
     tn = tests[[i]]
-    if(filt!="") {
-      enabled = grepl(filt, tests[[i]])
-    } else {
-      enabled = TRUE
-    }
+    # no env var, filt="" means all enabled
+    enabled = grepl(filt, tests[[i]])
     if(enabled) {
       message("Running test ",i,": ",tn)
       do.call(tn,list())
       message("Passed test ",i,": ",tn)
     } else {
-      message("Eliding test ",i,": ",tn," (TEST_FILTER=",filt,")")
+      message("Skipping test ",i,": ",tn," (TEST_FILTER=",filt,")")
     }
   }
 }
