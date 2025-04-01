@@ -4,8 +4,8 @@
 # unit tests can export variables to global environment, but should
 # work independently of the other tests. we source(local=TRUE) to get
 # the names of the tests defined by each file; this doesn't enforce
-# independence. 'export' should probably be changed to export to the
-# parent frame. XXX
+# independence. incidentally for this project we have changed 'export'
+# to export to the parent frame.
 
 # -> TEST_FILTER environment variable also specifies a regex to match
 # test names against
