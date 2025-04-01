@@ -82,11 +82,11 @@ basic_back_ops = list(
 grad = function(x, y) {
   stop_if_no_tape()
   stopifnot(is.tape_wrap(x), is.tape_wrap(y), length(y$value) == 1)  # x numeric, y scalar
-  
+
   tape <- .tape
   n <- tape$length
   if (n == 0 || y$id > n || x$id > n) stop("Tape does not contain x or y")
-  
+
   # Step 1: Find descendants of x up to y
   descendants <- integer(0)
   to_visit <- x$id
@@ -107,27 +107,27 @@ grad = function(x, y) {
     }
   }
   if (!y$id %in% descendants) stop("y is not a descendant of x")
-  
+
   # Step 2: Initialize adjoints for descendants only
   adjoints <- numeric(n)  # 0 for non-descendants
   adjoints[y$id] <- 1     # Seed with ∂y/∂y = 1
-  
+
   # Step 3: Backpropagate from y, only for descendants
   for (i in rev(descendants)) {
     entry <- tape$get(i)
     if (entry$op == "tape_var") next  # No inputs to propagate
-    
+
     back_func <- basic_back_ops[[entry$op]]
     if (is.null(back_func)) stop("No backward rule for ", entry$op)
-    
+
     # Get input values (or pass extra args like perm for aperm)
     inputs <- lapply(entry$inputs, function(id) tape$get(id)$value)
     if (entry$op == "[") inputs <- c(inputs, list(entry$repr))  # Pass index
     if (entry$op == "aperm") inputs <- c(inputs, list(attr(entry, "perm")))  # Pass perm
-    
+
     # Compute gradients for inputs
     adj_in <- do.call(back_func, c(list(adj_out = adjoints[i], val = entry$value), inputs))
-    
+
     # Accumulate adjoints for inputs that are descendants
     for (j in seq_along(entry$inputs)) {
       input_id <- entry$inputs[j]
@@ -136,7 +136,7 @@ grad = function(x, y) {
       }
     }
   }
-  
+
   # Return gradient for x
   adjoints[x$id]
 }
@@ -145,24 +145,24 @@ grad = function(x, y) {
 test_grad = function(xs, y, eps = 1e-6) {
   if (is.tape_wrap(xs)) xs <- list(xs)
   stopifnot(all(sapply(xs, is.tape_wrap)), is.tape_wrap(y))
-  
+
   # Analytical gradients
   grad_analytical <- sapply(xs, function(x) grad(x, y))
-  
+
   # Numerical gradients
   grad_numerical <- numeric(length(xs))
   base_y <- y$value
-  
+
   for (i in seq_along(xs)) {
     tape_init()  # Reset tape
     xs_perturbed <- lapply(xs, function(x) tape_var(x$value))  # Recreate vars
     xs_perturbed[[i]]$value <- xs_perturbed[[i]]$value + eps   # Perturb
     # Recompute y (assuming y$op and inputs align with original computation)
     y_perturbed <- eval(parse(text = y$repr), envir = list2env(xs_perturbed))
-    
+
     grad_numerical[i] <- (y_perturbed - base_y) / eps
   }
-  
+
   # Compare
   cat("Analytical gradients:", grad_analytical, "\n")
   cat("Numerical gradients: ", grad_numerical, "\n")
@@ -177,13 +177,13 @@ if (TRUE) {
   x <- tape_var(2)          # x = 2
   y <- tape_var(3)          # y = 3
   z <- x * y / (x + y)     # z = (2*3)/(2+3) = 6/5 = 1.2
-  
+
   # Compute gradients
   grad_x <- grad(x, z)
   grad_y <- grad(y, z)
   cat("Gradients: ∂z/∂x =", grad_x, ", ∂z/∂y =", grad_y, "\n")
   show_tape()
-  
+
   # Verify numerically
   cat("\nTesting gradients:\n")
   test_result <- test_grad(list(x, y), z)

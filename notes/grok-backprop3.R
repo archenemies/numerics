@@ -30,24 +30,24 @@ get_desc = function(x) {
   tape <- .tape
   n <- tape$length
   if (n == 0 || x$id > n) stop("Tape is empty or does not contain x")
-  
+
   # Initialize result list and visited set
   desc <- list()
   visited <- integer()
   to_process <- x$id  # Start with x
-  
+
   # Forward traversal to find descendants
   while (length(to_process) > 0) {
     current_id <- to_process[1]
     to_process <- to_process[-1]
-    
+
     if (current_id %in% visited) next
     visited <- c(visited, current_id)
-    
+
     # Get the current entry
     entry <- tape$get(current_id)
     desc[[as.character(current_id)]] <- numeric(length(entry$value)) * 0  # Zero accumulator
-    
+
     # Find entries that use current_id as an input
     for (i in 1:n) {
       if (i %in% visited) next
@@ -57,7 +57,7 @@ get_desc = function(x) {
       }
     }
   }
-  
+
   desc
 }
 
@@ -68,31 +68,31 @@ grad = function(x, y) {
   tape <- .tape
   n <- tape$length
   if (y$id > n) stop("Tape does not contain y")
-  
+
   # Step 1: Get descendants of x and initialize accumulators
   accumulators <- get_desc(x)
   if (!(as.character(x$id) %in% names(accumulators))) {
     stop("x is not an ancestor of y")
   }
-  
+
   # Step 2: Backpropagate from y
   accumulators[[as.character(y$id)]] <- 1  # Seed with ∂y/∂y = 1
-  
+
   for (i in y$id:1) {
     # Skip if not a descendant of x
     if (!(as.character(i) %in% names(accumulators))) next
-    
+
     entry <- tape$get(i)
     if (entry$op == "tape_var") next  # No inputs to propagate to
-    
+
     # Get backward function and input values
     back_func <- basic_back_ops[[entry$op]]
     if (is.null(back_func)) stop("No backward rule for ", entry$op)
     inputs <- lapply(entry$inputs, function(id) tape$get(id)$value)
-    
+
     # Compute gradients for inputs
     adj_in <- do.call(back_func, c(list(adj_out = accumulators[[as.character(i)]], val = entry$value), inputs))
-    
+
     # Accumulate adjoints for inputs that are descendants
     for (j in seq_along(entry$inputs)) {
       input_id <- entry$inputs[j]
@@ -101,7 +101,7 @@ grad = function(x, y) {
       }
     }
   }
-  
+
   # Step 3: Return gradient for x
   accumulators[[as.character(x$id)]]
 }
@@ -112,11 +112,11 @@ if (TRUE) {
   x <- tape_var(2)    # x = 2
   y <- tape_var(3)    # y = 3
   z <- x * y + x      # z = x*y + x = 2*3 + 2 = 8
-  
+
   # Compute gradient ∂z/∂x
   g <- grad(x, z)
   cat("Gradient ∂z/∂x =", g, "\n")
-  
+
   # Show tape and descendants for debugging
   show_tape()
   desc <- get_desc(x)
