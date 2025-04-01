@@ -78,10 +78,9 @@ tape_var_repr <- function(value, repr) {
 is.tape_wrap <- function(x) { inherits(x, "tape_wrap") }
 
 print.tape_wrap <- function(x) {
-  cat("tape_wrap:\n")
-  cat("  op=",x$op,", repr=",x$repr,"\n")
+  cat("tape_wrap: op=",x$op,", repr=",x$repr,"\n")
   cat("  inputs=",deparse(x$inputs),"\n")
-  cat("  value\n")
+  cat("  value:\n")
   print(x$value)
 }
 
