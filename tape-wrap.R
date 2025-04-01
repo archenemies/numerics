@@ -170,5 +170,5 @@ for (op in basic_ops) {
 
 if(mySourceLevel==0) {
   mysource("test-tape-wrap.R")
-  test_tape1()
+  test_tape2()
 }

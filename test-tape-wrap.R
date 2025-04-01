@@ -4,9 +4,10 @@
 mysource("tape-wrap.R")
 mysource("export.R")
 
-setup_tape1 = function(export=F) {
+setup_tape1 = function() {
+  # simple tape
   # compute (1+2)*2*5
-  y <- tape_var(2);
+  y <- tape_var(2); # try different uses of tape_var
   pv(y)
   tape_var(x=1, v=5);
   pv(x,v)
@@ -15,8 +16,18 @@ setup_tape1 = function(export=F) {
   w <- z*tape_var(2)
   qq <- w*v
   pv(qq)
-  if(export)
-    export(x,y,z,w,v,qq)
+  export(x,y,z,w,v,qq)
+}
+
+setup_tape2 = function() {
+  # a slightly more complicated tape
+  # y depends on x via separate paths
+  tape_var(x=2, u=5);
+  z <- (x+u)*tape_var(2)
+  w <- x+tape_var(3)
+  y <- z*w
+  pv(x,u,w,z,y)
+  export(x,u,w,z,y)
 }
 
 test_tape1 = function() {
@@ -24,6 +35,14 @@ test_tape1 = function() {
   use_tape(tp)
   setup_tape1()
   show_tape(tp)
-  use_tape(NULL)
+  use_tape(NULL) # optional
+  free_tape(tp)
+}
+
+test_tape2 = function() {
+  tp = new_tape()
+  use_tape(tp)
+  setup_tape2()
+  show_tape(tp)
   free_tape(tp)
 }
