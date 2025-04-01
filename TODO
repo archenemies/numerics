@@ -1,8 +1,11 @@
 FHE 31 Mar 2025
 
 - backprop.R (see notes)
-  - add wrap=FALSE argument to get_desc_list (and rename to tape_traverse)
+  \- add wrap=FALSE argument to get_desc_list (and rename to tape_traverse)
   - clean up tests a little more
+    - function to check pert against grad
+    - test wrap=T
+    - function to check each operation (using random values)
   - preliminary expansion of operations and unit tests
   - make tape_wrap work with duals and mduals, using get_desc_list to traverse
 

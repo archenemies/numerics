@@ -67,24 +67,28 @@ list_exists = function(l,id) {
 # the accumulators. start with the accumulator version and keep it
 # general.
 
-# get_desc_list(x)
+# forward_traverse(x)
 # x: the tape_var whose descendents we're interested in
 # type: the type of traversal we want
 #   - accum: return a list of zero'ed accumulators for grad
 #   - pert: recompute parts of the computation
 # xaux: auxiliary value for "pert" and "dual" types
-get_desc_list = function(x, xaux=NULL, upto=NULL, type="accum",
-  restrict_ids=NULL) {
+forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
+  restrict_ids=NULL, wrap=FALSE) {
   stop_if_no_tape()
   n = .tape$length
   l = list()
   if(is.null(upto)) upto = .tape$get(n);
   if(is.null(restrict_ids)) restrict_ids = as.integer(x$id %upto% upto$id);
-  has_id = function(id) {list_exists(l,id)}
-  add_dual_entry = function(ent, dual=1) {
-    # we add x specially. after that we call this
-    # function with tape_wrap which we promote and add to l
-    stop("not implemented")
+  has_id = function(id) { list_exists(l,id) }
+  maybe_unwrap = if(wrap) { identity } else { untapewrap }
+  maybe_wrap = if(wrap) { tape_var } else { identity }
+  add_accum_entry = function(ent) {
+    # the simplest traversal operation, just initialize all the
+    # accumulators for dependents of x. in case wrap==T, we don't
+    # actually depend on the original tape cell ent, so we create a
+    # new tape_var with the zero value
+    l[[ent$id]] <<- maybe_wrap(ent$value*0)
   }
   add_pert_entry = function(ent, dual=1) {
     # we add x specially. after that we call this
@@ -96,29 +100,27 @@ get_desc_list = function(x, xaux=NULL, upto=NULL, type="accum",
       if(list_exists(l,iid)) {
         pert_inputs[[i]] = l[[iid]]
       } else {
-        pert_inputs[[i]] = .tape$get(iid)$value
+        pert_inputs[[i]] = maybe_unwrap(.tape$get(iid))
       }
     }
-    ## pv(ent$op)
-    ## pv(pert_inputs)
+    # if wrap is true then this will be the wrapped operation
     pert_output = do.call(ent$op, pert_inputs)
     l[[ent$id]] <<- pert_output
   }
-  add_accum_entry = function(ent) {
-    # here we would do something different
-    # if we were propagating dual numbers for example
-    # we would wrap any missing inputs and source the rest from l
-    l[[ent$id]] <<- ent$value*0
+  add_dual_entry = function(ent, dual=1) {
+    # similar to add_pert_entry but with propagation of duals
+    stop("not implemented")
   }
-  add_entry = switch(type, accum=add_accum_entry,
+  add_entry = switch(type, init_accum=add_accum_entry,
     dual=add_dual_entry,
     pert=add_pert_entry,
     stop("Unknown get_accum_list type ", type))
   stopifnot(identical(x,.tape$get(x$id)))
-  if(type=="accum") {
+  if(type=="init_accum") {
     add_entry(x)
   } else if(type=="dual" || type=="pert") {
     stopifnot(identical(dim(x$value), dim(xaux)))
+    if(wrap) stopifnot(is.tape_wrap(xaux))
     l[[x$id]] = xaux;
   }
   # sort ascending
@@ -135,9 +137,9 @@ get_desc_list = function(x, xaux=NULL, upto=NULL, type="accum",
 
 tape_get_pert = function(x,xaux,y) {
   stop_if_no_tape()
-  # call get_desc_list(x, xaux=xaux, upto=y, type="pert")
+  # call forward_traverse(x, xaux=xaux, upto=y, type="pert")
   y_inputs = all_inputs(y)
-  l = get_desc_list(x, xaux=xaux, type="pert", restrict_ids=y_inputs)
+  l = forward_traverse(x, xaux=xaux, type="pert", restrict_ids=y_inputs)
   l[[y$id]]
 }
 
@@ -153,11 +155,11 @@ tape_get_pert = function(x,xaux,y) {
 
 # Notes: 1. this algorithm may not be optimal for all-paths (?) but its running time is dwarfed by the actual computation
 # 2. we have opted not to add entries to the tape when computing the gradient, that would be a simple modification but we're not sure we would use it
-tape_get_grad = function(x,y) {
+tape_get_grad = function(x,y,wrap=F) {
   stop_if_no_tape()
-  # call get_desc_list
+  # call forward_traverse
   y_inputs = all_inputs(y)
-  accums = get_desc_list(x, type="accum", restrict_ids=y_inputs)
+  accums = forward_traverse(x, type="init_accum", restrict_ids=y_inputs)
   new_inputs = y$id
   stopifnot(list_exists(accums,y$id))
   stopifnot(length(y$value)==1)
@@ -231,5 +233,5 @@ tape_get_grad = function(x,y) {
 
 if(mySourceLevel==0) {
   mysource("test-backprop.R")
-  test_01_pert()
+  test_02_pert()
 }
