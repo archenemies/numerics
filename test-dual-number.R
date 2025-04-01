@@ -23,4 +23,9 @@ test_dual_number1 = function() { # testing
   check_dual_op("t")(r)
   check_dual_op("%*%")(r,r)
   check_dual_op("solve")(r)
+  export(x,y,z,r)
+}
+
+if(mySourceLevel==0) {
+  test_dual_number1()
 }
