@@ -48,11 +48,16 @@ free_tape = function(tp=.tape) {
 }
 
 show_tape = function(tp=.tape) {
+  cat("Tape of length ",tp$length, "\n");
   # just create a data frame with the tape data, and print it
   ents = tp$buf
   df = as.data.frame(do.call(rbind,ents))
-  cat("Tape of length ",tp$length, "\n");
-  print(df)
+  # put ID column first
+  ids = as.numeric(df$id)
+  df$id = NULL
+  df = cbind(id=ids,df)
+  # row.names are just ids, so suppress them
+  print(df,row.names=F)
   # TODO: use maximum field width to truncate long strings
 }
 
@@ -110,6 +115,8 @@ deparse.tape_wrap = function(tw) {
     ",",deparse(tw$inputs),
     ",repr=",deparse(tw$repr),")")
 }
+
+untapewrap = function(tw) {stopifnot(is.tape_wrap(tw)); tw$value}
 
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
