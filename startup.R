@@ -13,7 +13,3 @@ mysource("lastind.R")
 
 mysource("generic-deparse.R")
 
-if(Sys.getenv("STY") != "") {
-  message("Setting screen window to 13");
-  system("screen -S $STY -X number 13");
-}
