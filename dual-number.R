@@ -1,6 +1,7 @@
 # FHE 24 Mar 2025
 # class for dual numbers in R
-# from https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
+# for sources see num-wrap.R, tape-wrap.R
+# also https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
 
 dual_number = function(value, dual=value*0) {
   if (!is.numeric(value) || !is.numeric(dual)) {
@@ -20,6 +21,11 @@ print.dual_number = function(x) {
   print(x$value)
   cat("  dual\n")
   print(x$dual)
+}
+
+deparse.dual_number = function(dn) {
+  paste0("dual_number(",deparse(dn$value),
+    ",",deparse(dn$dual),")")
 }
 
 collapse_dual = function(x, delta) {
@@ -154,7 +160,10 @@ lapply(seq_along(basic_ops), function(i) {
   create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
 })
 
-pv(mySourceLevel)
+dim.dual_number = function(x) {
+  dim(x$value)
+}
+
 if(mySourceLevel==0) {
   mysource("test-dual-number.R")
   test_dual_number1()

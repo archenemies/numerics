@@ -13,6 +13,17 @@ num_wrap <- function(value) {
 
 is.num_wrap = function(x) { inherits(x, "num_wrap") }
 
+print.num_wrap = function(x) {
+  cat("num_wrap:\n")
+  print(x$value)
+}
+
+# this will only do anything if we also source
+# mysource("generic-deparse.R")
+deparse.num_wrap = function(nw) {
+  paste0("num_wrap(",deparse(nw$value),")")
+}
+
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
 
@@ -60,7 +71,12 @@ for (op in basic_ops) {
   create_method(op)
 }
 
-if(0) {
+# we don't expect dim() to return a wrapped value
+dim.num_wrap = function(x) {
+  dim(x$value)
+}
+
+if(1) {
   e1 = num_wrap(1); e2 = num_wrap(2); e1+e2
   num_wrap(1)+num_wrap(2)
 }

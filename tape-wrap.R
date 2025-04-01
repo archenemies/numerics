@@ -169,6 +169,8 @@ for (op in basic_ops) {
   create_method(op)
 }
 
+# special operations
+
 # we don't expect dim() to return a wrapped value
 dim.tape_wrap = function(x) {
   dim(x$value)
