@@ -97,6 +97,11 @@ deparse.tape_wrap = function(tw) {
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve")
 
+crop_repr <- function(str) {
+  # https://stackoverflow.com/questions/46759358/truncate-character-strings-after-first-n-characters
+  ifelse(nchar(str) > 13, paste0(strtrim(str, 10), '...'), str)
+  }
+
 # Function to create and assign a tape_wrap method for 'op'
 create_method <- function(op) {
   # the original function
@@ -126,7 +131,8 @@ create_method <- function(op) {
     # the wrapped quantity:
     input_ids = sapply(wrapped_args, function(tv) { tv$id })
     input_reprs = lapply(wrapped_args, function(tv) { tv$repr })
-    new_repr = paste0(op, "(", paste0(input_reprs, collapse=","), ")")
+    cropped = lapply(input_reprs, crop_repr)
+    new_repr = paste0(op, "(", paste0(cropped, collapse=","), ")")
     tape_wrap(result, op, input_ids, repr=new_repr)
   }
 
