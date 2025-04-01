@@ -28,6 +28,9 @@ setup_tape2 = function() {
   y <- z*w
   pv(x,u,w,z,y)
   export(x,u,w,z,y)
+  # y= 2*(x+5)*(x+3)
+  # dy/dx = 2*(2*x+8) = 24
+  # d^2y/dx^2 = 4
 }
 
 test_tape1 = function() {
