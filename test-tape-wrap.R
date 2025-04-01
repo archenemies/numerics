@@ -20,7 +20,10 @@ setup_tape1 = function(export=F) {
 }
 
 test_tape1 = function() {
-  tape_init()
+  tp = new_tape()
+  use_tape(tp)
   setup_tape1()
-  show_tape()
+  show_tape(tp)
+  use_tape(NULL)
+  free_tape(tp)
 }

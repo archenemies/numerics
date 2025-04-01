@@ -1,8 +1,25 @@
 FHE 31 Mar 2025
 
-- tape should be a ref, set it up with use_tape()?
-    tp = new_tape
-    use_tape(tp)
+\- update tape interface (.tape is already a reference) in tape-wrap.R
+  \- new_tape, use_tape, free_tape. current_tape
+\- update test cases and make sure it works (test-tape-wrap.R, dependents)
+
+- add wrap=FALSE argument to get_desc_list (and rename to tape_traverse) in backprop.R
+
+global tape thoughts:
+    reasoning that it is more natural to have the tape stored in the model object,
+    - tape should be a ref, set it up with use_tape()?
+        tp = new_tape
+        use_tape(tp)
+        - or do we want a with_tape(tp, {}) syntax?
+        - does each tape_wrap point to the tape it's using?
+        - then we have to check before combining them? (that all are equal to current)
+    - the perturbed value can be a tape_wrap in get_desc_list, but it should be from the same tape
+    - more elegant to just have one global tape?
+    - or have user supply the ref but keep it in .tape?
+    - new_tape, use_tape, free_tape (writes NULL into the tape reference; this helps the garbage collector?); use_tape(NULL) if you don't want to free it
+    - we'll certainly want to have more than one model object (and therefore tape)
+
 
 - backprop.R (see notes)
   - clean up tests a little more

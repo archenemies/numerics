@@ -1,6 +1,8 @@
 # FHE 25 Mar 2025
 # from num-wrap.R
 
+.tape <- NULL
+
 # define the tape_wrap class
 tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
   stop_if_no_tape()
@@ -32,21 +34,37 @@ new_tape <- function() {
   }
   environment()
 }
-show_tape = function() {
+current_tape = function() {
+  return(.tape)
+}
+free_tape = function(tp=.tape) {
+  # format(.tape) -> "<environment: 0x62ef0d0ea768>"
+  if(format(tp)==format(.tape)) {
+    warning("Freeing the current tape")
+    .tape <<- NULL
+  }
+  with(tp, {rm(list=ls())})
+  invisible(NULL)
+}
+
+show_tape = function(tp=.tape) {
   # just create a data frame with the tape data, and print it
-  ents = .tape$buf
+  ents = tp$buf
   df = as.data.frame(do.call(rbind,ents))
-  cat("Tape of length ",.tape$length, "\n");
+  cat("Tape of length ",tp$length, "\n");
   print(df)
   # TODO: use maximum field width to truncate long strings
 }
 
-tape_init <- function() {
-  .tape <<- new_tape()
+use_tape <- function(tp) {
+  .tape <<- tp
 }
 stop_if_no_tape <- function() {
   if(!exists(".tape")) {
-    stop("Need to call tape_init first")
+    stop("Shouldn't get here")
+  }
+  if(is.null(.tape)) {
+    stop("Need to call use_tape first")
   }
 }
 

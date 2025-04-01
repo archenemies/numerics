@@ -7,7 +7,7 @@ mysource("test-tape-wrap.R")
 
 test_01_pert = function() {
   message("In test_01_pert")
-  tape_init()
+  use_tape(new_tape())
   setup_tape1(export=TRUE)
   show_tape()
   pv(get_desc_list(x))
