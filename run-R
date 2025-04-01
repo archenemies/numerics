@@ -1,11 +1,13 @@
 #!/usr/bin/expect
 # FHE 31 Mar 2025 from run-tests
 
+#stty raw
 spawn R --vanilla --quiet
 send {
 source("startup.R")
-mysource("screen-setup.R")
+mysource("screen-setup.R");
+mysource("mycli.R");
 }
 interact {
- \003 exit
+# \003 exit
 }
