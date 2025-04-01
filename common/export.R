@@ -21,7 +21,7 @@ export <- function(..., envir=parent.frame(2)) {
 	for(i in seq_along(dots)) {
       assign(names[i], eval(dots[[i]], parent.frame()),
              envir=envir)
-	}	
+	}
 }
 
 test_export1 = function() {
