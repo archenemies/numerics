@@ -1,7 +1,9 @@
-# FHE 08 Dec 2018 "print value" function
+# FHE 08 Dec 2018 "print value" function (actually from much earlier?)
 # usage:
 ## > a=2;b=3;pv(a,b)
 ## a=[1] 2, b=[1] 3
+
+# FHE 01 Apr 2025 TODO: pv(x=1) should assign x in parent.frame() and print its value
 
 pv0 = function(x) {
   res = paste0(capture.output(x),collapse="\n");
