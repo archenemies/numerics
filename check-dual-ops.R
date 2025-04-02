@@ -1,3 +1,4 @@
+# FHE 24 Mar 2025
 # Function to check dual number operation using numerical differentiation
 check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
   # Get the original operation function
