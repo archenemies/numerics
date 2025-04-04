@@ -46,12 +46,7 @@ create_method <- function(op) {
     args <- list(...);
 
     unwrapped_args <- lapply(args, function(arg) {
-      # must use eval:
-      if (is.num_wrap(arg)) {
-        arg$value
-      } else {
-        arg
-      }
+      if (is.num_wrap(arg)) { arg$value } else { arg }
     })
     # now call op_func
     result <- do.call(op_func, unwrapped_args)
