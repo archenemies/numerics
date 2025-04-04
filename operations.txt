@@ -17,3 +17,4 @@
 
 "get_dim" -> define separately, as return value is not wrapped
 
+"as_const" -> like *0 but faster. create an object with the same dimensions and constant entries
