@@ -142,6 +142,9 @@ create_method <- function(op) {
       if(is.tape_wrap(arg)) { arg$value } else { arg }
     })
     arg_text = lapply(substitute(...()),deparse)
+    if(!all(sapply(args, is.tape_wrap))) { # FHE 03 Apr 2025 XXX fix below
+      stop("All arguments must be wrapped")
+    }
     wrapped_args <- lapply(seq_along(args), function(i) {
       arg = args[[i]]
       repr = arg_text[[i]]
