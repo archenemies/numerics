@@ -66,12 +66,6 @@ print.mdual_number = function(x) {
   }
 }
 
-# helper function to append 1 to dimension list
-vector_of = function(x) {
-  dim(x) = c(dim(x),1)
-  x
-}
-
 # return mdual_number with new_names for names
 promote_mdual = function(mx, new_names) {
   if(identical(new_names, mx$names)) return(mx);
