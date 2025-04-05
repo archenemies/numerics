@@ -5,8 +5,7 @@
 spawn R --vanilla --quiet
 send {
 source("startup.R")
-mysource("screen-setup.R");
-mysource("mycli.R");
+mysource("myprofile.R");
 }
 interact {
 # \003 exit
