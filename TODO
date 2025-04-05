@@ -1,6 +1,7 @@
 FHE 03 Apr 2025
 
 - vec-wrap.R
+    \- remove ill-conceived "recycle" stuff
     - clean-up, and implement %*%
     - test
     - fix wrap=T to wrap=num_wrap in backprop.R

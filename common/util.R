@@ -69,8 +69,9 @@ if(0) {
 catd = function(expr) { cat(deparse1(expr),"\n") }
 
 # helper function to append 1 to dimension list
-vector_of = function(x) {
-  dim(x) = c(dim(x),1)
-  x
+vector_of = function(x, n=1) {
+  v = rep(x, n)
+  dim(v) = c(dim(x),n)
+  v
 }
 
