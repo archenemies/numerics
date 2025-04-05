@@ -66,6 +66,7 @@ test_vec_wrap_ops = function(dim=3, source="seq") {
   check_vec_op("+")(x,y)
   check_vec_op("-")(x,y)
   check_vec_op("*")(x,y)
+  check_vec_op("sum")(x)
   message("Passed all operations")
 }
 

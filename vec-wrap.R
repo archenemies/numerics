@@ -20,7 +20,7 @@
 vec_wrap <- function(value) {
 #  message("in vec_wrap: ",deparse(value))
   stopifnot(dim(value) != NULL)
-  n = tail(dim(value));
+  n = tail(dim(value),1);
   structure(list_vars(value, n), class = "vec_wrap")
 }
 
@@ -122,18 +122,33 @@ dim.vec_wrap = function(x) {
 }
 
 `[.vec_wrap` = function(x, ...) {
-  # XXX return a vec_wrap with subscripting
-  stop("Not implemented")
+  # return a vec_wrap with subscripting
+  # include the last index
+  # we always want drop=F?
+  xsub = x$value[...,]
+#  xsub = x$value[...,drop=F,]
+  vec_wrap(xsub)
 }
 
-sum.vec_wrap = function(x) {
-  # XXX rowSums
+sum.vec_wrap = function(x, ...) {
+  res = x$value
+  d = dim(res)
+  r = length(d)
+  # sum out all but the last dimension
+  if(r>1) { res = colSums(res, dims=r-1) }
+  dim(res) = x$n;
+  # and wrap the result
+  vec_wrap(res)
+}
+
+colSums.vec_wrap = function(x, ...) {
+  # XXX from above, this is needed for nested vec_wraps
   stop("Not implemented")
 }
 
 if(mySourceLevel==0) {
   mysource("test-vec-wrap.R")
-#  test_vec_wrap1()
+  test_vec_wrap_ops(dim=c(2,3), source="rnorm")
 }
 
 # XXX
