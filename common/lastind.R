@@ -5,7 +5,8 @@
 lastInd <- function(x, n){
     nd <- length(dim(x))
     # uncomment the following line if x could be a plain vector without dim
-    # if(nd == 0) nd = 1
+    # FHE 05 Apr 2025 (why was it ever commented?)
+    if(nd == 0) nd = 1
     inds <- rep(alist(,)[1], nd)
     inds[nd] <- n
     do.call(`[`, c(list(x), inds))
