@@ -32,3 +32,10 @@ lastDim <- function(x) {
     tail(d,1)
   }
 }
+
+# helper function to append 1 to dimension list
+vector_of = function(x, n=1) {
+  v = rep(x, n)
+  dim(v) = c(dim(x),n)
+  v
+}

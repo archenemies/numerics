@@ -68,10 +68,3 @@ if(0) {
 # FHE 08 Aug 2024 catd = cat deparse
 catd = function(expr) { cat(deparse1(expr),"\n") }
 
-# helper function to append 1 to dimension list
-vector_of = function(x, n=1) {
-  v = rep(x, n)
-  dim(v) = c(dim(x),n)
-  v
-}
-
