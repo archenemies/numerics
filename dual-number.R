@@ -13,7 +13,7 @@ dual_number = function(value, dual=value*0) {
   structure(list(value = value, dual = dual), class = "dual_number")
 }
 
-is.dual = function(x) { inherits(x, "dual_number") }
+is.dual_number = function(x) { inherits(x, "dual_number") }
 
 print.dual_number = function(x) {
   cat("dual_number:\n")
@@ -38,6 +38,8 @@ collapse_dual = function(x, delta) {
 ## > collapse_dual(x/y,0.01)
 ## [1] 1.5125
 
+undualnumber = function(x) { stopifnot(is.dual_number(x)); x$value }
+
 create_dual_method = function(op, dual_op) {
   # Get the original function for the operation
   op_func = get(op, envir = .GlobalEnv)
@@ -51,7 +53,7 @@ create_dual_method = function(op, dual_op) {
     # create unwrapped arguments for op_func, leaving non-numerics
     # unchanged
     unwrapped_args = lapply(args, function(arg) {
-      if (is.dual(arg)) { arg$value } else { arg }
+      if (is.dual_number(arg)) { arg$value } else { arg }
     })
 
     primal_res = do.call(op_func, unwrapped_args)

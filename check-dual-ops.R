@@ -5,21 +5,17 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
   op_func <- get(op, envir = .GlobalEnv)
 
   # from wrapper_func in create_dual_method
-  checker_func = function(...) {
+  function(...) {
     args = list(...)
-    unwrapped_args = lapply(args, function(arg) {
-      if (is.dual(arg)) { arg$value } else { arg }
-    })
+    unwrapped_args = lapply(args, undualnumber)
+
     unwrapped_delta_args = lapply(args, function(arg) {
-      if (is.dual(arg)) { collapse_dual(arg,delta) } else { arg }
-    })
-    wrapped_args = lapply(args, function(arg) {
-      if (is.numeric(arg)) { dual_number(arg) } else { arg }
+      collapse_dual(arg,delta)
     })
 
     u_res = do.call(op_func, unwrapped_args)
     u_delta_res = do.call(op_func, unwrapped_delta_args)
-    dual_res = do.call(op_func, wrapped_args)
+    dual_res = do.call(op_func, args)
 
     num_deriv = (u_delta_res-u_res)/delta
     an_deriv = dual_res$dual
@@ -35,5 +31,4 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
     }
     invisible(good)
   }
-  checker_func
 }
