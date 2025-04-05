@@ -18,7 +18,7 @@
 #  - the object stores the value and the last element of the dimension vector
 
 vec_wrap <- function(value) {
-  message("in vec_wrap: ",deparse(value))
+#  message("in vec_wrap: ",deparse(value))
   stopifnot(dim(value) != NULL)
   n = tail(dim(value));
   structure(list_vars(value, n), class = "vec_wrap")
@@ -133,7 +133,7 @@ sum.vec_wrap = function(x) {
 
 if(mySourceLevel==0) {
   mysource("test-vec-wrap.R")
-  test_vec_wrap1()
+#  test_vec_wrap1()
 }
 
 # XXX

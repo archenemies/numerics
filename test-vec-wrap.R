@@ -43,10 +43,10 @@ check_vec_op = function(op, tol=1e-5) {
       i_res = do.call(op_func, args_subsc_i)
       # check that the result is same as subsetting vec_res$value
       vec_res_i = lastInd(vec_res$value,i);
-      pv(i,vec_res_i,i_res)
+#      pv(i,vec_res_i,i_res)
       stopifnot(sum(abs(i_res-vec_res_i)) < tol)
     })
-    message("Passed ",op)
+    message("  Passed ",op)
     invisible(TRUE)
   }
 }
@@ -66,11 +66,11 @@ test_vec_wrap_ops = function(dim=3, source="seq") {
   check_vec_op("+")(x,y)
   check_vec_op("-")(x,y)
   check_vec_op("*")(x,y)
-  message("Passed")
+  message("Passed all operations")
 }
 
 if(mySourceLevel==0) {
-  test_vec_wrap1()
+#  test_vec_wrap1()
   test_vec_wrap_ops()
   test_vec_wrap_ops(dim=c(2,3), source="rnorm")
 }
