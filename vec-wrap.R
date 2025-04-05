@@ -122,19 +122,18 @@ dim.vec_wrap = function(x) {
 }
 
 `[.vec_wrap` = function(x, ...) {
+  # XXX return a vec_wrap with subscripting
+  stop("Not implemented")
+}
+
+sum.vec_wrap = function(x) {
+  # XXX rowSums
   stop("Not implemented")
 }
 
 if(mySourceLevel==0) {
-  a=array(1:24,dim=2:4)  
-  x=vec_wrap(a)
-  pv(dim(x))
-  stopifnot(identical(dim(x),2:3))
-  b=x*x
-  pv(b)
-  d = pv(vec_wrap_of(4)(2))
-  pv(d)
-  pv(b^b)
+  mysource("test-vec-wrap.R")
+  test_vec_wrap1()
 }
 
 # XXX
