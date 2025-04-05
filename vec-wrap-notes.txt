@@ -2,16 +2,37 @@ FHE 04 Apr 2025
 
 Notes on vec-wrap.R
 
-Originally we wanted to have a special object that keeps track of when
-we want to recycle the last index, so that we don't have to replicate
-the value object. But then we realized that this wouldn't work for
-nested uses of vec_wrap, which may be important, so we removed this
-facility. A better design would be to have R keep track of objects
-created through replication of a vector, and to optimize storage by
-keeping only the original vector and using a special subscripting
-operation (with modular arithmetic?). Actually I think R should have
-an internal vector storage backend that represents an array with
-certain dimensions "recycled" so that only one copy of each of these
-needs to be stored. That would be a more appropriate place for such an
-optimization since it can be applied to all vectors.
+The vec_wrap class is intended to support automatic vectorization. For
+example to compute the Hessian of a function, we can compute the
+gradient of each element of its gradient vector. To this efficiently
+calls for a vectorized backpropagation, which requires us to develop a
+system for automatically vectorizing each of the backprop operations.
 
+In writing this class we notice that R could use better support for
+vectorization, for example there should be a primitive function for
+vectorized matrix product and inverse, or a general array product
+function that can specialize to this (using BLAS and better than
+sweep() which is not really documented?).
+
+Also, there should be better support for R-style recycling array
+indices. Originally we wanted to have a special object that keeps
+track of when we want to recycle the last index of a vec_wrap value,
+so that we don't have to replicate the value object n times. But then
+we realized that this wouldn't work for nested uses of vec_wrap, which
+may be important, so we removed this optimization. A better design
+would be to have R keep track of objects created through replication
+of a vector, and to optimize storage by keeping only the original
+vector and using a special subscripting operation (with modular
+arithmetic?) to present the appearance of a repeated vector. Actually
+I think R should have an internal vector storage backend that
+represents an array with certain dimensions "recycled" so that only
+one copy of each of these needs to be stored. That would be a more
+appropriate place for such an optimization since it can be applied to
+all vectors. In our usage and in general, this optimization doesn't
+decrease the time or memory complexity, and so it could be said to
+have low priority.
+
+I would propose using this class as an example use case for the R
+language, that could be used to guide the design of a more complete
+API for vectorized numerics in R, and a more intelligent and efficient
+backend for numerical operations.
