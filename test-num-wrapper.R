@@ -32,7 +32,6 @@ for (op in bin_ops) {
 
       # Get the operator function (e.g., `+`, `*`) and apply it
       op_func <- get(op)
-#      browser()
       num_wrapper(op_func(val1, val2))
     }, envir = .GlobalEnv)
   }) (op)
