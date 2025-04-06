@@ -130,12 +130,29 @@ dual_solve = function(val, a, b, ...) {
   }
 }
 
-# realizing it's bad to automatically
-# promote the arguments to functions to dual_number
-# because we can't easily distinguish them from the 'dims'
-# argument. better to just ask user to call dual_number
-dual_rowSums = function(., x, dims) {
-  stop("not implemented")
+dual_exp = function(val, x) {
+  val * x$dual
+}
+dual_log = function(val, x) {
+  x$dual / x$value
+}
+
+rowSums.dual_number = function(x, na.rm=F, dims=1) {
+  val = rowSums(x$value, na.rm=na.rm, dims=dims)
+  vd = rowSums(x$dual, na.rm=na.rm, dims=dims)
+  dual_number(val,vd)
+}
+
+colSums.dual_number = function(x, na.rm=F, dims=1) {
+  val = colSums(x$value, na.rm=na.rm, dims=dims)
+  vd = colSums(x$dual, na.rm=na.rm, dims=dims)
+  dual_number(val,vd)
+}
+
+sum.dual_number = function(x, na.rm=F) {
+  val = sum(x$value, na.rm=na.rm)
+  vd = sum(x$dual, na.rm=na.rm)
+  dual_number(val,vd)
 }
 
 # list of all the dual operations we have defined
@@ -147,8 +164,11 @@ basic_dual_ops = list(
   "/"=dual_div,
   "t"=dual_t,
   "%*%"=dual_mat_mult,
-  "solve"=dual_solve
+  "solve"=dual_solve,
+  "exp"=dual_exp,
+  "log"=dual_log
 )
+# defined specially: sum, rowSums, colSums
 
 basic_ops = names(basic_dual_ops)
 # 'for' causes broken lexical scoping so use lapply
@@ -162,5 +182,5 @@ dim.dual_number = function(x) {
 
 if(mySourceLevel==0) {
   mysource("test-dual-number.R")
-  test_dual_number1()
+  test_dual_ops()
 }

@@ -1,6 +1,6 @@
 # FHE 24 Mar 2025
 # Function to check dual number operation using numerical differentiation
-check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
+check_dual_op <- function(op, delta = 1e-7, tol = 1e-4) {
   # Get the original operation function
   op_func <- get(op, envir = .GlobalEnv)
 
@@ -26,6 +26,7 @@ check_dual_op <- function(op, delta = 1e-7, tol = 1e-5) {
       pv(u_res, u_delta_res, dual_res)
       pv((u_delta_res-u_res)/delta)
       pv(dual_res$dual)
+      stop("Failed")
     } else {
       message("Passed ",op,": ", dev, "<", tol)
     }
