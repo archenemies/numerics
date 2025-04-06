@@ -44,7 +44,7 @@ deparse.vec_wrap = function(x) {
   paste0("vec_wrap(",deparse1(x$value),")")
 }
 
-# use create_method for operations that are automatically vectorized
+# use create_vec_wrap_method for operations that are automatically vectorized
 # correctly the result is something like this but handles recycling
 # more correctly:
 ## +.vec_wrap = function(e1,e2) {
@@ -141,6 +141,13 @@ sum.vec_wrap = function(x, ...) {
   vec_wrap(res)
 }
 
+# there should be a vectorized matrix multiplication routine in R and
+# BLAS. because we don't have one, we just loop over indices
+`%*%.vec_wrap` = function(x,y) {
+  # check if first argument
+  stop("Not implemented")
+}
+
 colSums.vec_wrap = function(x, ...) {
   # XXX from above, this is needed for nested vec_wraps
   stop("Not implemented")
@@ -156,3 +163,8 @@ if(mySourceLevel==0) {
 # - aperm, t, %*%, vec_mat_mult
 # - move the logic from create_vec_wrap_method into helper functions so that we can update the examples +.vec_wrap and have them still look good
 # - this will be needed before we start on %*% etc.
+
+# - putting this on hold while we reconsider mdual-number.R
+# - put back "recycle"?
+#   - and update the dimension checks in create_method
+# - create_method for 'solve' and other ops that need to be done in a loop

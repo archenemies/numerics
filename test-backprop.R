@@ -74,6 +74,8 @@ test_03_grad_wrap = function() {
   message("Passed test_03_grad_wrap")
 }
 
+mysource("check-back-ops.R")
+
 if(mySourceLevel==0) {
   mysource("test-backprop.R")
 #  test_01_pert()

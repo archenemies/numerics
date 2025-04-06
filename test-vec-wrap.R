@@ -23,7 +23,7 @@ check_vec_op = function(op, tol=1e-5) {
   op_func <- get(op, envir = .GlobalEnv)
   function(...) {
     args = list(...);
-    unwrapped_args = lapply(args, unvecwrap)
+#    unwrapped_args = lapply(args, unvecwrap)
     arg_dims = dim(args[[1]]$value)
     for(i in seq_along(args)) {
       idims = dim(args[[i]]$value)

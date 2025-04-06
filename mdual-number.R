@@ -10,122 +10,36 @@
 
 mysource("lastind.R")
 
-mdual_number <- function(value, mdual, names) {
+mdual_number <- function(value, mdual) {
   # Validate inputs
   stopifnot(is.numeric(value))
   stopifnot(is.numeric(mdual))
   stopifnot(is.character(names))
 
   ndim = length(dim(mdual))
-  if (ndim < 1) {
-    stop("mdual must have at least one dimension")
-  }
-  nd = dim(mdual)[ndim]
-  if (nd != length(names)) {
-    stop("Last dimension of mdual must match length of names")
-  }
-  if (any(duplicated(names))) {
-    stop("names must be unique")
-  }
-
-  if(!identical(c(dim(value), nd), dim(mdual))) {
+  stopifnot(ndim>0)
+  K = dim(mdual)[ndim]
+  if(!identical(c(dim(value), K), dim(mdual))) {
     stop("non-conforming dimensions for value and mdual: ",
       sv(dim(value)), "; ", sv(dim(mdual)))
   }
-
   # Create and return the object
-  structure(list(value = value, mdual = mdual, names = names), class = "mdual_number")
+  structure(list_vars(value, mdual), class = "mdual_number")
 }
 
-is.mdual = function(x) { inherits(x, "mdual_number") }
-
-stripClass = function(x) {
-  class(x) = NULL
-  x
-}
-
-format.mdual_number = function(x) {
-  cat("mdual:\n")
-  format(stripClass(x))
-}
+is.mdual_number = function(x) { inherits(x, "mdual_number") }
 
 print.mdual_number = function(x) {
   ns = x$names
   cat("mdual_number: ", paste0(ns, collapse=","), "\n")
   cat("  primal\n")
   print(x$value)
-  if(0) {
-    cat("  mdual\n")
-    print(x$mdual)
-  } else {
-    stopifnot(length(ns) == lastDim(x$mdual))
-    for(i in seq_along(ns)) {
-      cat("  dual[",i,"]= (",ns[i],")\n",sep="")
-      print(lastInd(x$mdual, i))
-    }
-  }
+  cat("  mdual\n")
+  print(x$mdual)
 }
 
-# return mdual_number with new_names for names
-promote_mdual = function(mx, new_names) {
-  if(identical(new_names, mx$names)) return(mx);
-  if(!all(mx$names %in% new_names)) {
-    stop("new_names must be a superset of mx$names: ",
-      sv(mx$names), " ", sv(new_names))
-  }
+auto_vec_ops <-
+  c("+", "*", "-", "/", "^",
+  "exp","log",
+  "sin","cos","tan")
 
-  mxd = mx$mdual
-  old_dims = dim(mxd)
-  ndim = length(old_dims);
-  stopifnot(ndim>=1)
-  nd = old_dims[ndim]
-  stopifnot(nd==length(mx$names))
-  nnd = length(new_names)
-
-  # turn argument mdual into a matrix, temporarily
-  mat_dims = c(prod(old_dims[-ndim]), nd)
-  dim(mxd) = mat_dims;
-  # add a column of zeros
-  mxd = cbind(mxd, 0)
-  # now the last dim() is incremented by 1
-  stopifnot(dim(mxd)[2] == (nd+1))
-  new_col_ids = match(mx$names, new_names)
-  col_sources = rep(nd+1, length(new_names))
-  col_sources[new_col_ids] = 1 %upto% length(mx$names)
-  nr = nrow(mxd)
-  # rearrange the columns to match new_names
-  mxd = mxd[1 %upto% nr, col_sources, drop=F]
-  new_dims = old_dims;
-  new_dims[ndim] = nnd
-  dim(mxd) = new_dims
-
-  mx$mdual = mxd
-  mx$names = new_names
-  mx
-}
-
-# sync_mduals: promote each mdual_number the list mds
-# input: list of mdual_numbers
-# output: same list but promoted to have same $names
-sync_mduals = function(mds) {
-  stopifnot(is.list(mds))
-  all_names=list()
-  for(md in mds) {
-    all_names = union(all_names, md$names)
-  }
-  # (for some reason union makes it a list:)
-  all_names = as.character(all_names)
-  res_mds = list()
-  for(i in seq_along(mds)) {
-    res_mds[[i]] = promote_mdual(mds[[i]], all_names)
-  }
-  res_mds
-}
-
-# - call sync_mduals from op method
-# - fill in the rest from dual-number.R
-
-# FHE 26 Mar 2025
-# - implement functions:
-#   - collapse_mdual
-#   - operations in operations.txt
