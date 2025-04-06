@@ -1,15 +1,29 @@
+FHE 05 Apr 2025
+
+- working goal: JVP and HVP with dual_number (end of Sunday?)
+  - with vectors and testing
+  - forget about mdual and vec_wrap (they would only save few % anyway?)
+
 FHE 03 Apr 2025
 
+- mdual-number.R
+  - update dual checking code from backprop checking code
+  - finish adding and testing difficult dual-number.R operations like sum
+  - remove ill-conceived vector naming code
+
+  - use it (instead of vec_wrap) to compute Hessians
+
 - vec-wrap.R
-    \- remove ill-conceived "recycle" stuff
-    - clean-up, and implement %*%
-    - test
-    - fix wrap=T to wrap=num_wrap in backprop.R
-    - continue with backprop ops testing
+  \- remove ill-conceived "recycle" stuff
+    - put it back in some form so that we can have vectorized mat-mul
+  - clean-up, and implement %*%
+  - test
+  - fix wrap=T to wrap=num_wrap in backprop.R
+  - continue with backprop ops testing
 
 FHE 01 Apr 2025
 
-- backprop.R (see notes)
+-> - backprop.R (see notes)
   - clean up tests a little more
     - function to check each operation (using random values)
   - preliminary expansion of operations and unit tests
