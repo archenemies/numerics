@@ -79,8 +79,8 @@ dual_plus = function(., e1, e2) {
 # Subtraction (binary and unary):
 # Binary: (a + b*dx) - (c + d*dx) = (a - c) + (b - d)*dx
 # Unary: -(a + b*dx) = (-a) + (-b)*dx
-dual_minus = function(., e1, e2 = NULL) {
-  if (is.null(e2)) {
+dual_minus = function(., e1, e2) {
+  if (missing(e2)) {
     -e1$dual  # Unary minus
   } else {
     e1$dual - e2$dual  # Binary subtraction
@@ -105,21 +105,15 @@ dual_t = function(., x) {
 }
 
 # matrix multiplication
-# XXX for mdual, we need a more general matrix multiplication
-# which it seems must be done by rearranging dimensions?
-# in the first term they are in the right order already
-# but for the second we need a t() to get the final dimension
-# first in front of last one and then another to get it after it again
-# -- which asks the question, should we be dualizing a more general
-# matrix multiplication function in the first place? or our users will
-# just be doing the same dimension shuffling so this is good
-# -- use aperm() FHE 26 Mar 2025
-## > str(aperm(x,c(3,1,2)))
-##  int [1:4, 1:2, 1:3] 1 7 13 19 2 8 14 20 3 9 ...
-## > str(x)
-##  int [1:2, 1:3, 1:4] 1 2 3 4 5 6 7 8 9 10 ...
+
+# we need a more general matrix multiplication for mdual. note that
+# for a vector dual, in the first term they are in the right order
+# already but for the second we need a t() to get the final dimension.
+# if we just use vec_wrap, it will end up doing a useless array
+# transpose on the replicated x$value...
+  # vector duals:
+# (i,j) %*% (j,k,l) + (i,j,l) %*% (j,k)
 dual_mat_mult = function(val, x, y) {
-  message("HERE");
   (x$value %*% y$dual) + (x$dual %*% y$value)
 }
 
