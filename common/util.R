@@ -4,6 +4,47 @@ mysource("pv.R");
 
 is.true = function(x) { length(x) > 0 && x }
 
+# compose operator
+`%c%` = function(x,y)function(...)x(y(...))
+
+# FHE 06 Apr 2025
+# override any duplicate names
+# with last entry
+# with help from grok (to find "duplicated()")
+override_dups = function(l) {
+  if (!is.list(l)) stop("Input must be a list")
+  na = names(l)
+  n = length(l)
+  keep = (na=="") | !rev(duplicated(rev(na)))
+  l[keep]
+}
+# original version:
+## override_dups = function(l) {
+##   na = names(l)
+##   seen = list()
+##   res = list();
+##   for(i in rev(seq_along(l))) {
+##     ni = na[i]
+##     if(ni!="") {
+##       if(!is.null(seen[[ni]])) {
+##         next
+##       }
+##       seen[[ni]] = T
+##     }
+##     res = c(l[i], res)
+##   }
+##   res
+## }
+
+# currying (partial application)
+Curry <- function(FUN,...) {
+  .orig = list(...);
+  # FHE 06 Apr 2025
+  # we want to be able to use Curry to specify new defaults
+  function(...) do.call(FUN,override_dups(c(.orig,list(...))))
+  ## function(...) do.call(FUN,c(.orig,list(...)))
+}
+
 gmean = function(x) {
   exp(mean(log(x)))
 }
