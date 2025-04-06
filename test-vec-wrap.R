@@ -51,17 +51,17 @@ check_vec_op = function(op, tol=1e-5) {
   }
 }
 
-test_vec_wrap_ops = function(dim=3, source="seq") {
+test_vec_wrap_ops = function(dim=3, fill="seq") {
   message("Testing vec_wrap operations, dim=",deparse(dim))
   n = prod(dim)
-  fill = function(n) {
-    switch(source,
+  genfill = function(n) {
+    switch(fill,
       rnorm = rnorm(n),
       seq = 1:n,
-      stop("Unknown fill type ",source))
+      stop("Unknown fill type ",fill))
   }
-  x = vec_wrap(array(fill(n), dim=dim))
-  y = vec_wrap(array(rev(fill(n)), dim=dim))
+  x = vec_wrap(array(genfill(n), dim=dim))
+  y = vec_wrap(array(rev(genfill(n)), dim=dim))
 
   check_vec_op("+")(x,y)
   check_vec_op("-")(x,y)
@@ -73,5 +73,5 @@ test_vec_wrap_ops = function(dim=3, source="seq") {
 if(mySourceLevel==0) {
 #  test_vec_wrap1()
   test_vec_wrap_ops()
-  test_vec_wrap_ops(dim=c(2,3), source="rnorm")
+  test_vec_wrap_ops(dim=c(2,3), fill="rnorm")
 }
