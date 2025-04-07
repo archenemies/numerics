@@ -109,3 +109,11 @@ if(0) {
 # FHE 08 Aug 2024 catd = cat deparse
 catd = function(expr) { cat(deparse1(expr),"\n") }
 
+# FHE 06 Apr 2025 for backprop testing
+rand_fill = function(n) {
+  # generate random numbers that stay away from 0
+  # for "/" mostly
+  v = rnorm(n)
+  (abs(v)+0.2)*sign(v)
+}
+

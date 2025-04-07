@@ -29,15 +29,9 @@ test_dual_number1 = function() { # testing
 test_dual_ops = function(dim=3, tol=1e-4) {
   message("Testing dual_number operations, dim=",deparse(dim))
   n = prod(dim)
-  fill = function(n) {
-    # generate random numbers that stay away from 0
-    # for "/" mostly
-    v = rnorm(n)
-    (abs(v)+0.2)*sign(v)
-  }
   make_dual = function() {
-    dual_number(array(fill(n), dim=dim),
-      array(fill(n), dim=dim))
+    dual_number(array(rand_fill(n), dim=dim),
+      array(rand_fill(n), dim=dim))
   }
   x = make_dual()
   y = make_dual()
@@ -55,12 +49,13 @@ test_dual_ops = function(dim=3, tol=1e-4) {
   if(length(dim)==1) {
     make_dual_matrix = function() {
       dual_number(
-        matrix(fill(n*n), nrow = n),
-        matrix(fill(n*n), nrow = n)
+        matrix(rand_fill(n*n), nrow = n),
+        matrix(rand_fill(n*n), nrow = n)
       )
     }
     r = make_dual_matrix()
     u = make_dual_matrix()
+
     cdo("t")(r)
     cdo("%*%")(r,u)
     cdo("solve",tol=tol*10)(r)

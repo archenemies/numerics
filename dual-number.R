@@ -70,6 +70,7 @@ create_dual_method = function(op, dual_op) {
 
 # ----------------------------------------------------------------
 # dual operations
+mysource("ops-common.R")
 
 # Addition: (a + b*dx) + (c + d*dx) = (a + c) + (b + d)*dx
 dual_plus = function(., e1, e2) {
@@ -155,6 +156,26 @@ sum.dual_number = function(x, na.rm=F) {
   dual_number(val,vd)
 }
 
+# replicate a dual_number
+rep.dual_number = function(x, n) {
+  dual_number(
+    rep(x$value, n),
+    rep(x$dual, n)
+  )
+}
+
+# shape a dual_number vector
+array.dual_number = function(data, dim) {
+  dual_number(
+    array(data$value, dim),
+    array(data$value, dim)
+  )
+}
+
+dim.dual_number = function(x) {
+  dim(x$value)
+}
+
 # list of all the dual operations we have defined
 # see operations.txt for a full list
 basic_dual_ops = list(
@@ -175,10 +196,6 @@ basic_ops = names(basic_dual_ops)
 lapply(seq_along(basic_ops), function(i) {
   create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
 })
-
-dim.dual_number = function(x) {
-  dim(x$value)
-}
 
 if(mySourceLevel==0) {
   mysource("test-dual-number.R")

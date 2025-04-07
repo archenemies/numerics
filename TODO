@@ -1,5 +1,11 @@
 FHE 05 Apr 2025
 
+- intermediate goal:
+  \- rep() and array() overloaded for tape_var and dual_number
+    \- so that we can get the back_ops test code working
+    ~- and test these
+    - note XXXs
+
 - working goal: JVP and HVP with dual_number (end of Sunday?)
   - with vectors and testing
   - forget about mdual and vec_wrap (they would only save few % anyway?)

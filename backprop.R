@@ -26,15 +26,64 @@ back_minus = function(adj_out, val, e1, e2) {
     list(adj_out, -adj_out)
   }
 }
+# e1 and e2 are (in simple case) unwrapped
 back_mult = function(adj_out, val, e1, e2) {
   list(adj_out*e2, adj_out*e1)
+}
+back_sum = function(adj_out, val, x) {
+  stopifnot(length(adj_out)==1)
+  stopifnot(length(val)==1)
+
+  # ones, with the same dims (and type) as x.
+  # more optimal way to write x*0+1?
+  #  list(x*0+1) <- we can't do it this way without rep()
+  list(dim_like(rep(adj_out, length(x)), x))
+}
+
+# XXX handle 'each'
+back_rep = function(adj_out, val, x, n) {
+  # adj_out has the larger length
+  # it (and val) is n times as long as x
+
+  # we need to use rowSums (and remember to set the output dimension
+  # since it will be NULL if rowSums returns a vector) on adj_out to
+  # produce a value with the same dimensions as arg
+
+  L = length(adj_out)
+  l = length(x)
+  stopifnot(l*n == L)
+  #
+  m = array(adj_out, dim=c(n,l))
+  # we sum the n repetitions over the l columns
+  v = colSums(m)
+  stopifnot(length(v)==l)
+  # NULL is for the 'n' reps argument
+  list(dim_like(v,x), NULL)
+}
+
+back_as.vector = function(adj_out, val, x) {
+  # adj_out is a vector
+  # x is a vector or array
+  list(dim_like(adj_out, x))
+}
+
+back_array = function(adj_out, val, data, dims) {
+  # adj_out has dimensions 'dims'
+  # we just need to reshape it to have same dimensions as data
+
+  # remember we return a gradient for each argument
+  list(dim_like(adj_out, data), NULL)
 }
 
 basic_back_ops = list(
   "tape_var"=back_tape_var,
   "+"=back_plus,
   "-"=back_minus,
-  "*"=back_mult
+  "*"=back_mult,
+  "sum"=back_sum,
+  "rep"=back_rep,
+  "as.vector"=back_as.vector,
+  "array"=back_array
 )
 back_ops = basic_back_ops
 
@@ -180,8 +229,9 @@ tape_get_grad = function(x,y,wrap=F) {
     restrict_ids=y_inputs, wrap=wrap)
   stopifnot(list_exists(accums,y$id))
 
-  if(wrap) accums[[y$id]] = tape_var(1)
-  else accums[[y$id]] = 1
+  y_adj = dim_like(1, y)
+  if(wrap) y_adj = tape_var(y_adj)
+  accums[[y$id]] = y_adj
 
   new_inputs = y$id
   while(length(new_inputs)>0) {
@@ -205,8 +255,11 @@ tape_get_grad = function(x,y,wrap=F) {
         args = append(list(adj_out, ent), input_ents)
       }
       back_op = back_ops[[ent$op]]
-      stopifnot(!is.null(back_op))
-      # get the list of input adjoitns from adj_out and the other arguments
+      if(is.null(back_op)) {
+        stop("Undefined back_op for: ",ent$op)
+      }
+      # get the list of input adjoints from adj_out and the other arguments
+      pv(ent$op)
       res = do.call(back_op, args)
       # res is a list with NULL for non-numeric args to op
       # now accumulate the input adjoints in accum
@@ -215,9 +268,13 @@ tape_get_grad = function(x,y,wrap=F) {
           r = res[[i]]
           if(!wrap) { stopifnot(is.numeric(r)) }
           else { stopifnot(is.tape_wrap(r)) }
+          stopifnot(length(inputs)>=i)
           iid = inputs[i]
           if(list_exists(accums, iid)) {
-            stopifnot(identical(dim(r),dim(accums[[iid]])))
+            if(!identical(dim(r),dim(accums[[iid]]))) {
+              stop("Error: accumulator has wrong dimension: ",
+                sv(dim(r))," != ",sv(dim(accums[[iid]])))
+            }
             accums[[iid]] = accums[[iid]] + r
           }
         }

@@ -3,7 +3,7 @@
 
 mysource("backprop.R")
 
-mysource("test-tape-wrap.R")
+mysource("test-tape-wrap.R") # for setup_tape{1,2}()
 
 test_01_pert = function() {
   message("In test_01_pert")
@@ -18,6 +18,8 @@ test_01_pert = function() {
   message("Passed test_pert")
 }
 
+# XXX generalize to vector x?
+# or just always use random vectors to test
 tape_pert_numdiff = function(x,y,h=1e-4) {
   xp = x$value + h;
   yp = tape_get_pert(x, xp, y)
@@ -79,5 +81,6 @@ mysource("check-back-ops.R")
 if(mySourceLevel==0) {
   mysource("test-backprop.R")
 #  test_01_pert()
-  test_03_grad_wrap()
+#  test_03_grad_wrap()
+  test_check_back_op()
 }
