@@ -94,6 +94,12 @@ back_array = function(adj_out, val, data, dims) {
   list(dim_like(adj_out, data), NULL)
 }
 
+back_subscr = function(adj_out, val, x, ...) {
+  x0 = zeros_like(x)
+  x0[...] = adj_out
+  list(x0) # remember to return a list!
+}
+
 basic_back_ops = list(
   "tape_var"=back_tape_var,
   "+"=back_plus,
@@ -107,7 +113,8 @@ basic_back_ops = list(
   "sum"=back_sum,
   "rep"=back_rep,
   "as.vector"=back_as.vector,
-  "array"=back_array
+  "array"=back_array,
+  "["=back_subscr
 )
 back_ops = basic_back_ops
 

@@ -68,7 +68,7 @@ test_dual_ops = function(dim=3, tol=1e-4) {
 }
 
 if(mySourceLevel==0) {
-#  test_dual_number1()
+  test_dual_number1()
   test_dual_ops()
   test_dual_ops(dim=c(3,2,4))
 }

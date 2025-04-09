@@ -138,6 +138,18 @@ dual_log = function(val, x) {
   x$dual / x$value
 }
 
+dual_subscr = function(val, x, ...) {
+  x$dual[...]
+}
+
+`[.dual_number` = function(x, ...) {
+  val = x$value[...]
+  vd = dual_subscr(val, x, ...)
+  dual_number(val,vd)
+}
+
+# XXX need helpers dual_rowSums etc. for use in dual-only tape traversal
+
 rowSums.dual_number = function(x, na.rm=F, dims=1) {
   val = rowSums(x$value, na.rm=na.rm, dims=dims)
   vd = rowSums(x$dual, na.rm=na.rm, dims=dims)
