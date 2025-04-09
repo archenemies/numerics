@@ -5,7 +5,10 @@ mysource("tape-wrap.R")
 
 # ----------------------------------------------------------------
 # Operations:
-# Every operation must have a back_ version, as in back_add, back_mat_mul, ... This takes as input the adjoint of the operator output, and returns a list of adjoints, one for each input (with NA for non-tape inputs)
+# Every operation must have a back_ version, as in back_add,
+# back_mat_mul, ... This takes as input the adjoint of the operator
+# output, and returns a list of adjoints, one for each input (with NA
+# for non-tape inputs)
 #     back_add = function(adj_out, val, e1, e2) {
 #         list(adj_out, adj_out) }
 #     back_mul = function("""") {
@@ -241,12 +244,18 @@ tape_get_pert = function(x,xaux,y) {
 #     y must be wrapping a scalar value
 #   1. traverse tape and compile a list of descendents of x (up to y)
 #      and initialize accumulators (one for each descendent)
-#   2. work backwards from y, following inputs and accumulating adjoints in entries of the accumulator list from 1, until you get to x. if you find an input with no accumulator then we can ignore it since it is not a descendent of x.
+#   2. work backwards from y, following inputs and accumulating
+#      adjoints in entries of the accumulator list from 1, until you
+#      get to x. if you find an input with no accumulator then we can
+#      ignore it since it is not a descendent of x.
 #   3. return the x accumulator
 # assume that .tape points to the current tape
 
-# Notes: 1. this algorithm may not be optimal for all-paths (?) but its running time is dwarfed by the actual computation
-# 2. we have opted not to add entries to the tape when computing the gradient, that would be a simple modification but we're not sure we would use it
+# Notes: 1. this algorithm may not be optimal for all-paths (?) but
+# its running time is dwarfed by the actual computation
+# 2. we have opted not to add entries to the tape when computing the
+# gradient, that would be a simple modification but we're not sure we
+# would use it
 
 # arguments: wrap, if true then record the gradient calculation on the tape
 tape_get_grad = function(x,y,wrap=F) {
@@ -322,14 +331,7 @@ tape_get_grad = function(x,y,wrap=F) {
 # ----------------------------------------------------------------
 
 # TODO:
-# \- gradient calculation with backprop.
-#
-# \- a way to test it: a function test_grad(xs,y) that uses numerical differentiation to find the gradient and check it against the one returned by grad().
-#   \- compare tape_get_pert with tape_get_grad
-#   \-> check_tape_grad_pert
 
-# - slightly more operations
-# - test with vectors/matrices
 # - functions for JVP and HVP
 # - more operations
 
