@@ -148,40 +148,54 @@ dual_subscr = function(val, x, ...) {
   dual_number(val,vd)
 }
 
-# XXX need helpers dual_rowSums etc. for use in dual-only tape traversal
-
+# helpers for use in dual-only tape traversal
+dual_rowSums = function(val, x, na.rm=F, dims=1) {
+  rowSums(x$dual, na.rm=na.rm, dims=dims)
+}
 rowSums.dual_number = function(x, na.rm=F, dims=1) {
   val = rowSums(x$value, na.rm=na.rm, dims=dims)
-  vd = rowSums(x$dual, na.rm=na.rm, dims=dims)
+  vd = dual_rowSums(val, x, na.rm, dims)
   dual_number(val,vd)
 }
 
+dual_colSums = function(val, x, na.rm=F, dims=1) {
+  colSums(x$dual, na.rm=na.rm, dims=dims)
+}
 colSums.dual_number = function(x, na.rm=F, dims=1) {
   val = colSums(x$value, na.rm=na.rm, dims=dims)
-  vd = colSums(x$dual, na.rm=na.rm, dims=dims)
+  vd = dual_colSums(val, x, na.rm=na.rm, dims=dims)
   dual_number(val,vd)
 }
 
+dual_sum = function(val, x, na.rm=F, dims=1) {
+  sum(x$dual, na.rm=na.rm)
+}
 sum.dual_number = function(x, na.rm=F) {
   val = sum(x$value, na.rm=na.rm)
-  vd = sum(x$dual, na.rm=na.rm)
+  vd = dual_sum(val, x, na.rm=na.rm)
   dual_number(val,vd)
+}
+
+dual_rep = function(val, x, n) {
+  rep(x$dual, n)
 }
 
 # replicate a dual_number
 rep.dual_number = function(x, n) {
-  dual_number(
-    rep(x$value, n),
-    rep(x$dual, n)
-  )
+  val = rep(x$value, n)
+  vd = dual_rep(val, x, n)
+  dual_number(val, vd)
+}
+
+dual_array = function(val, data, dim) {
+  array(data$dual, dim)
 }
 
 # shape a dual_number vector
 array.dual_number = function(data, dim) {
-  dual_number(
-    array(data$value, dim),
-    array(data$value, dim)
-  )
+  val = array(data$value, dim)
+  vd = dual_array(val, data, dim)
+  dual_number(val, vd)
 }
 
 dim.dual_number = function(x) {
@@ -201,12 +215,24 @@ basic_dual_ops = list(
   "exp"=dual_exp,
   "log"=dual_log
 )
-# defined specially: sum, rowSums, colSums
+# operations defined specially: sum, rowSums, colSums, etc.
+# because one or more arguments is not a dual_number
+# these are needed here for tape traversal (??)
+dual_ops = c(basic_dual_ops,
+  list("sum"=dual_sum,
+    "["=dual_subscr,
+    "rowSums"=dual_rowSums,
+    "colSums"=dual_colSums,
+    "array"=dual_array,
+    "rep"=dual_rep
+  )
+)
 
+# generate methods for the basic operations
 basic_ops = names(basic_dual_ops)
 # 'for' causes broken lexical scoping so use lapply
-lapply(seq_along(basic_ops), function(i) {
-  create_dual_method(basic_ops[[i]], basic_dual_ops[[i]])
+lapply(basic_ops, function(nm) {
+  create_dual_method(nm, basic_dual_ops[[nm]])
 })
 
 if(mySourceLevel==0) {

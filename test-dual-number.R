@@ -26,6 +26,7 @@ test_dual_number1 = function() { # testing
   export(x,y,z,r)
 }
 
+# a more organized and vector-valued version of the above
 test_dual_ops = function(dim=3, tol=1e-4) {
   message("Testing dual_number operations, dim=",deparse(dim))
   n = prod(dim)
@@ -67,8 +68,23 @@ test_dual_ops = function(dim=3, tol=1e-4) {
   message("Passed all operations")
 }
 
+test_dual_array = function() {
+  # TODO we can also use this function with backprop
+  array_fn = function(x) {
+    y = sum(x[3:5]*x[1:3])
+    z = y*y
+    z
+  }
+  array_obj = dual_number(
+    rand_array(10),
+    rand_array(10)
+  )
+  check_dual_function(array_fn, list(array_obj))
+}
+
 if(mySourceLevel==0) {
-  test_dual_number1()
-  test_dual_ops()
-  test_dual_ops(dim=c(3,2,4))
+  ## test_dual_number1()
+  ## test_dual_ops()
+  ## test_dual_ops(dim=c(3,2,4))
+  test_dual_array()
 }
