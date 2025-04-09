@@ -30,6 +30,21 @@ back_minus = function(adj_out, val, e1, e2) {
 back_mult = function(adj_out, val, e1, e2) {
   list(adj_out*e2, adj_out*e1)
 }
+# simplify using 'val'
+back_div = function(adj_out, val, e1, e2) {
+  tm = adj_out/e2
+  list(tm,
+    -tm*val)
+}
+
+back_exp = function(adj_out, val, x) {
+  list(adj_out*val)
+}
+
+back_log = function(adj_out, val, x) {
+  list(adj_out/x)
+}
+
 back_sum = function(adj_out, val, x) {
   stopifnot(length(adj_out)==1)
   stopifnot(length(val)==1)
@@ -40,7 +55,7 @@ back_sum = function(adj_out, val, x) {
   list(dim_like(rep(adj_out, length(x)), x))
 }
 
-# XXX handle 'each'
+# XXX note we don't handle 'each' yet, which may be necessary
 back_rep = function(adj_out, val, x, n) {
   # adj_out has the larger length
   # it (and val) is n times as long as x
@@ -80,6 +95,11 @@ basic_back_ops = list(
   "+"=back_plus,
   "-"=back_minus,
   "*"=back_mult,
+  "/"=back_div,
+
+  "exp"=back_exp,
+  "log"=back_log,
+
   "sum"=back_sum,
   "rep"=back_rep,
   "as.vector"=back_as.vector,
@@ -259,7 +279,6 @@ tape_get_grad = function(x,y,wrap=F) {
         stop("Undefined back_op for: ",ent$op)
       }
       # get the list of input adjoints from adj_out and the other arguments
-      pv(ent$op)
       res = do.call(back_op, args)
       # res is a list with NULL for non-numeric args to op
       # now accumulate the input adjoints in accum

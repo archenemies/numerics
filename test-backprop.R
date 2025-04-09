@@ -82,5 +82,6 @@ if(mySourceLevel==0) {
   mysource("test-backprop.R")
 #  test_01_pert()
 #  test_03_grad_wrap()
-  test_check_back_op()
+#  test_check_back_plus()
+  test_check_back_ops()
 }
