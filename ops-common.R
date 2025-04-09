@@ -2,12 +2,6 @@
 
 mysource("generic-ops.R")
 
-# fix problem with tail(x,-0)
-tail_minus = function(x, n) {
-  if(n==0) x
-  else tail(x,-n)
-}
-
 dim_like = function(v,x) {
   if(is.null(dim(x)))
     as.vector(v)

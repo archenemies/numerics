@@ -117,3 +117,9 @@ rand_fill = function(n) {
   (abs(v)+0.2)*sign(v)
 }
 
+# FHE 08 Apr 2025 orphan helper
+# fix problem with tail(x,-0)
+tail_minus = function(x, n) {
+  if(n==0) x
+  else tail(x,-n)
+}
