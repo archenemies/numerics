@@ -249,7 +249,7 @@ tape_get_grad = function(x,y,wrap=F) {
       if(!wrap) {
         val = ent$value
         unwrapped_inputs = lapply(input_ents, untapewrap)
-        args = append(list(adj_out, ent), unwrapped_inputs)
+        args = append(list(adj_out, val), unwrapped_inputs)
       } else {
         stopifnot(is.tape_wrap(adj_out))
         args = append(list(adj_out, ent), input_ents)
