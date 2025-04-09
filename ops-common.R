@@ -22,6 +22,27 @@ rep_like = function(arg, model) {
   dim_like(res,model)
 }
 
+zeros_like.default = function(x, zero=0) {
+  rep_like(zero, x)
+}
+zeros_like <- function(...) { UseMethod("zeros_like") }
+
+ones_like = Curry(zeros_like, zero=1)
+
+# TODO: make generic?
+rand_like = function(obj) {
+  v = rand_fill(length(obj))
+  if(is.null(dim(obj)))
+    as.vector(v)
+  else
+    array(v,dim(obj))
+}
+
+rand_array = function(dims) {
+  v = rand_fill(prod(dims))
+  array(v,dims)
+}
+
 if(0) {
   pv(rep_like(2, array(1:24, dim=4:2)))
 }

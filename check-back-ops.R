@@ -4,24 +4,20 @@
 # check_back_op
 # which checks the correctness of the back_op operations
 
-make_obj = function(dims) {
-  array(rand_fill(prod(dims)), dim=dims)
-}
-
 # example of testing backpropagation of an operation (+) with vector
 # inputs and outputs
 test_check_back_plus = function(dim=3) {
   message("In test_check_back_plus")
   use_tape(new_tape())
   tape_var(x = 1, y = 1)
-  xo = tape_var(make_obj(dim))
-  yo = tape_var(make_obj(dim))
+  xo = tape_var(rand_array(dim))
+  yo = tape_var(rand_array(dim))
   xc = rep_like(x, xo)*xo
   yc = rep_like(y, yo)*yo
 
   zc = xc + yc
 
-  zo = tape_var(make_obj(dim(zc)))
+  zo = tape_var(rand_array(dim(zc)))
   z = sum(zc*zo)
 
   export(x,y,z)
@@ -44,7 +40,7 @@ check_back_op = function(op="+", tol=1e-3) {
     make_arg_cells = function(val) {
       tape_var(x = 1)
       x0 = tape_var(val)
-      x1 = tape_var(make_obj(dim(val)))
+      x1 = tape_var(rand_array(dim(val)))
       xc = x0 + rep_like(x, x1)*x1
       list(x,xc)
     }
@@ -56,7 +52,7 @@ check_back_op = function(op="+", tol=1e-3) {
 
     zc = do.call(op_func, op_args)
 
-    zo = tape_var(make_obj(dim(zc)))
+    zo = tape_var(rand_array(dim(zc)))
     z = sum(zc*zo)
 
 #    show_tape()
@@ -69,8 +65,8 @@ check_back_op = function(op="+", tol=1e-3) {
 }
 
 test_check_back_ops = function(dim=3) {
-  x = make_obj(dim)
-  y = make_obj(dim)
+  x = rand_array(dim)
+  y = rand_array(dim)
   check_back_op("+")(x,y)
   check_back_op("*")(x,y)
   check_back_op("-")(x,y)

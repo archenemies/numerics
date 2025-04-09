@@ -162,7 +162,10 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
     # accumulators for dependents of x. in case wrap==T, we don't
     # actually depend on the original tape cell ent, so we create a
     # new tape_var with the zero value
-    zeroval = ent$value*0
+
+    # zeros_like is generic so ent$value can be a wrapped numeric
+    zeroval = zeros_like(ent$value)
+    ## zeroval = ent$value*0
     # if recording, give accums a distinct repr:
     if(wrap) zeroval = tape_var_repr(zeroval,"init_accum")
     l[[ent$id]] <<- zeroval;
@@ -249,7 +252,7 @@ tape_get_grad = function(x,y,wrap=F) {
     restrict_ids=y_inputs, wrap=wrap)
   stopifnot(list_exists(accums,y$id))
 
-  y_adj = dim_like(1, y)
+  y_adj = ones_like(y)
   if(wrap) y_adj = tape_var(y_adj)
   accums[[y$id]] = y_adj
 
