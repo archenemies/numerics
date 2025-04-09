@@ -21,6 +21,9 @@ options("show.error.locations"=T)
 options(keep.source.pkgs=TRUE);
 options(keep.source=TRUE);
 
+# FHE 07 Apr 2025
+options(digits=3)
+
 # FHE 13 Jul 2021 for searchable documentation (from mailing list)
 options(useFancyQuotes=FALSE)
 if(!exists(".hist_loaded")) {
