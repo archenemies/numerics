@@ -2,21 +2,6 @@
 
 mysource("generic-ops.R")
 
-# not ideal, since it invisibly promotes undimensioned vectors of
-# length>1, but it doesn't make sense to give these empty dim
-dim_or0 = function(x) {
-  stopifnot(length(x)>0)
-  d = dim(x)
-  if(is.null(d)) {
-    if(length(x)==1)
-      integer(0)
-    else
-      length(x)
-  } else {
-    d
-  }
-}
-
 # fix problem with tail(x,-0)
 tail_minus = function(x, n) {
   if(n==0) x
