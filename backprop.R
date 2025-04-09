@@ -17,21 +17,25 @@ back_tape_var = function(adj_out, val, value) {
   list(NULL)
 }
 back_plus = function(adj_out, val, e1, e2) {
+  stopifnot(length(e1)==length(e2))
   list(adj_out, adj_out)
 }
 back_minus = function(adj_out, val, e1, e2) {
   if(missing(e2)) { # unary minus
     list(-adj_out)
   } else { # binary
+    stopifnot(length(e1)==length(e2))
     list(adj_out, -adj_out)
   }
 }
 # e1 and e2 are (in simple case) unwrapped
 back_mult = function(adj_out, val, e1, e2) {
+  stopifnot(length(e1)==length(e2))
   list(adj_out*e2, adj_out*e1)
 }
 # simplify using 'val'
 back_div = function(adj_out, val, e1, e2) {
+  stopifnot(length(e1)==length(e2))
   tm = adj_out/e2
   list(tm,
     -tm*val)
