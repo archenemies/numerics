@@ -125,7 +125,7 @@ untapewrap = function(tw) {stopifnot(is.tape_wrap(tw)); tw$value}
 
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve",
-  "exp","log"
+  "exp", "log"
   )
 
 # operations with extra (non-wrapped) arguments are defined separately
@@ -167,6 +167,17 @@ as.vector.tape_wrap = function(x, mode) {
   result = as.vector(x$value)
   new_repr = paste0("as.vector(",crop_repr(x$repr),")")
   tape_wrap(result, "as.vector", x$id, repr=new_repr)
+}
+# note: adds a tape entry to remember "dims"
+`[.tape_wrap` = function(x, ...) {
+  res = x$value[...]
+  args = list(...)
+  arg_cells = lapply(args, tape_var)
+  new_repr = paste0("subscr(",crop_repr(x$repr),",",
+    deparse1(args),")")
+  tape_wrap(res, "[",
+    sapply(arg_cells, Curry(getElement,name="id"))
+  , repr=new_repr)
 }
 
 
