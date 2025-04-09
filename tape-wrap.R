@@ -50,6 +50,7 @@ free_tape = function(tp=.tape) {
 }
 
 show_tape = function(tp=.tape) {
+  stopifnot(!is.null(tp))
   cat("Tape of length ",tp$length, "\n");
   # just create a data frame with the tape data, and print it
   ents = tp$buf
@@ -58,9 +59,12 @@ show_tape = function(tp=.tape) {
   ids = as.numeric(df$id)
   df$id = NULL
   df = cbind(id=ids,df)
+
+  # crop the (sometimes long) value strings with ...
+  df$value = sapply(df$value, Curry(crop_str,n=15) %c% Curry(paste0,collapse=", ") %c% format)
+
   # row.names are just ids, so suppress them
   print(df,row.names=F)
-  # TODO: use maximum field width to truncate long strings
 }
 
 use_tape <- function(tp) {
@@ -175,17 +179,18 @@ as.vector.tape_wrap = function(x, mode) {
   arg_cells = lapply(args, tape_var)
   new_repr = paste0("subscr(",crop_repr(x$repr),",",
     deparse1(args),")")
-  tape_wrap(res, "[",
-    sapply(arg_cells, Curry(getElement,name="id"))
-  , repr=new_repr)
+  inputs = c(x$id,sapply(arg_cells, Curry(getElement,name="id")))
+  tape_wrap(res, "[", inputs, repr=new_repr)
 }
 
 
 # helper for create_method
-crop_repr <- function(str) {
-  # https://stackoverflow.com/questions/46759358/truncate-character-strings-after-first-n-characters
-  ifelse(nchar(str) > 13, paste0(strtrim(str, 10), '...'), str)
-  }
+crop_repr = Curry(crop_str, n=10)
+
+# https://stackoverflow.com/questions/46759358/truncate-character-strings-after-first-n-characters
+crop_str <- function(str, n=13) {
+  ifelse(nchar(str) > n, paste0(strtrim(str, n-3), '...'), str)
+}
 
 # Function to create and assign a tape_wrap method for 'op'
 create_method <- function(op) {
