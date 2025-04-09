@@ -3,7 +3,8 @@
 # for sources see num-wrap.R, tape-wrap.R
 # also https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
 
-dual_number = function(value, dual=value*0) {
+dual_number = function(value, dual=zeros_like(value)) {
+## dual_number = function(value, dual=value*0) {
   if (!is.numeric(value) || !is.numeric(dual)) {
     stop("Both primal and dual must be numeric")
   }

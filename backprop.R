@@ -123,7 +123,7 @@ back_ops = basic_back_ops
 
 #----------------------------------------------------------------
 
-all_inputs = function(y) {
+find_all_inputs = function(y) {
   inputs = integer(0)
   new_inputs = y$id
   while(length(new_inputs)>0) {
@@ -141,6 +141,47 @@ all_inputs = function(y) {
 list_exists = function(l,id) {
   if(id > length(l)) return(FALSE);
   return(!is.null(l[[id]]))
+}
+
+cell_rerun_zero = function(ent, l, wrap) {
+  # the simplest traversal operation, just initialize all the
+  # accumulators for dependents of x. in case wrap==T, we don't
+  # actually depend on the original tape cell ent, so we create a
+  # new tape_var with the zero value
+
+  # zeros_like is generic so ent$value can be a wrapped numeric
+  zeroval = zeros_like(ent$value)
+  ## zeroval = ent$value*0
+  # if recording, give accums a distinct repr:
+  if(wrap) zeroval = tape_var_repr(zeroval,"init_accum")
+  l[[ent$id]] <- zeroval
+  l
+}
+# XXX move the input-gathering to a helper function for sharing with dual version
+cell_rerun_pert = function(ent, l, promote) {
+  # we add x specially. after that we call this
+  # function with tape_wrap which we re-evaluate on perturbed inputs, and add to l
+  inputs = ent$inputs
+  pert_inputs = list()
+  for(i in seq_along(inputs)) {
+    iid = inputs[i]
+    if(list_exists(l,iid)) {
+      pert_inputs[[i]] = l[[iid]]
+    } else {
+      pert_inputs[[i]] = promote(.tape$get(iid))
+    }
+  }
+  # if wrap is true then this will be the wrapped operation
+  pert_output = do.call(ent$op, pert_inputs)
+  l[[ent$id]] <- pert_output
+  l
+}
+cell_rerun_dual = function(ent, l) {
+  # similar to add_pert_entry but with propagation of duals
+  # l contains dual_number versions of each cell
+  # use dual_op to construct from value and create dual_number from
+  # this. also, need version storing/taking a list of multiple duals
+  stop("not implemented")
 }
 
 # thoughts. for the purpose of perturbing the inputs, or for
@@ -166,75 +207,55 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
   stop_if_no_tape()
   n = .tape$length
   l = list()
+
   if(is.null(upto)) upto = .tape$get(n);
   if(is.null(restrict_ids)) restrict_ids = as.integer(x$id %upto% upto$id);
-  has_id = function(id) { list_exists(l,id) }
-  maybe_unwrap = if(wrap) { identity } else { untapewrap }
-  maybe_wrap = if(wrap) { tape_var } else { identity }
-  add_accum_entry = function(ent) {
-    # the simplest traversal operation, just initialize all the
-    # accumulators for dependents of x. in case wrap==T, we don't
-    # actually depend on the original tape cell ent, so we create a
-    # new tape_var with the zero value
+  # sort ascending
+  restrict_ids = sort(restrict_ids)
 
-    # zeros_like is generic so ent$value can be a wrapped numeric
-    zeroval = zeros_like(ent$value)
-    ## zeroval = ent$value*0
-    # if recording, give accums a distinct repr:
-    if(wrap) zeroval = tape_var_repr(zeroval,"init_accum")
-    l[[ent$id]] <<- zeroval;
-  }
-  add_pert_entry = function(ent, dual=1) {
-    # we add x specially. after that we call this
-    # function with tape_wrap which we re-evaluate on perturbed inputs, and add to l
-    inputs = ent$inputs
-    pert_inputs = list()
-    for(i in seq_along(inputs)) {
-      iid = inputs[i]
-      if(list_exists(l,iid)) {
-        pert_inputs[[i]] = l[[iid]]
-      } else {
-        pert_inputs[[i]] = maybe_unwrap(.tape$get(iid))
-      }
-    }
-    # if wrap is true then this will be the wrapped operation
-    pert_output = do.call(ent$op, pert_inputs)
-    l[[ent$id]] <<- pert_output
-  }
-  add_dual_entry = function(ent, dual=1) {
-    # similar to add_pert_entry but with propagation of duals
-    stop("not implemented")
-  }
-  add_entry = switch(type, init_accum=add_accum_entry,
-    dual=add_dual_entry,
-    pert=add_pert_entry,
+  have_cell_id = function(id) { list_exists(l,id) }
+  maybe_unwrap = if(wrap) { identity } else { untapewrap }
+
+  fwd_process = switch(type,
+    init_accum=Curry(cell_rerun_zero,wrap=wrap),
+##    init_accum=function(x,l) {cell_rerun_zero(x,l,wrap=wrap)},
+    pert=Curry(cell_rerun_pert,promote=maybe_unwrap),
+    dual=cell_rerun_dual,
     stop("Unknown get_accum_list type ", type))
+
   stopifnot(identical(x,.tape$get(x$id)))
+
   if(type=="init_accum") {
-    add_entry(x)
+    l = fwd_process(x, l)
   } else if(type=="dual" || type=="pert") {
     stopifnot(identical(dim(x$value), dim(xaux)))
     if(wrap) stopifnot(is.tape_wrap(xaux))
     l[[x$id]] = xaux;
   }
-  # sort ascending
-  restrict_ids = sort(restrict_ids)
+
+  # execute the computation
   for(i in restrict_ids) {
     ent = .tape$get(i)
     inputs = ent$inputs
-    if(any(sapply(inputs, has_id))) {
-      add_entry(ent)
+    if(any(sapply(inputs, have_cell_id))) {
+      l = fwd_process(ent, l)
     }
   }
   return(l)
 }
 
+# XXX new args: wrap, promote
 tape_get_pert = function(x,xaux,y) {
   stop_if_no_tape()
   # call forward_traverse(x, xaux=xaux, upto=y, type="pert")
-  y_inputs = all_inputs(y)
+  y_inputs = find_all_inputs(y)
   l = forward_traverse(x, xaux=xaux, type="pert", restrict_ids=y_inputs)
   l[[y$id]]
+}
+
+# calculate JVP
+tape_get_dual = function(x,xdot,y) {
+  stop("not implemented")
 }
 
 # ----------------------------------------------------------------
@@ -263,14 +284,16 @@ tape_get_grad = function(x,y,wrap=F) {
   stopifnot(length(y$value)==1)
 
   # call forward_traverse
-  y_inputs = all_inputs(y)
+  y_inputs = find_all_inputs(y)
   if(!x$id %in% y_inputs) {
     stop("tape_get_grad: y not a descendent of x")
   }
 
   accums = forward_traverse(x, type="init_accum",
     restrict_ids=y_inputs, wrap=wrap)
-  stopifnot(list_exists(accums,y$id))
+  if(!list_exists(accums,y$id)) {
+    stop("Didn't find y in accumulator list")
+  }
 
   y_adj = ones_like(y)
   if(wrap) y_adj = tape_var(y_adj)

@@ -1,3 +1,14 @@
+FHE 09 Apr 2025
+
+- commit changes
+- XXXs - cell_rerun_pert
+- nesting wrappers
+- implement cell_rerun_dual
+  - test duals using cell_rerun_pert
+- make rowSums etc. more automatic
+  - with excl_args parameter to a common dispatcher
+  -> keep these in one tape cell?
+
 FHE 07 Apr 2025
 
 # ordered list from handwritten notes:
