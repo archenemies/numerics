@@ -54,7 +54,9 @@ create_dual_method = function(op, dual_op) {
     # create unwrapped arguments for op_func, leaving non-numerics
     # unchanged
     unwrapped_args = lapply(args, function(arg) {
-      if (is.dual_number(arg)) { arg$value } else { arg }
+      ## if (is.dual_number(arg)) { arg$value } else { arg }
+      stopifnot(is.dual_number(arg))
+      arg$value
     })
 
     primal_res = do.call(op_func, unwrapped_args)
@@ -68,6 +70,21 @@ create_dual_method = function(op, dual_op) {
   # Register the method in the global environment
   assign(method_name, wrapper_func, envir = .GlobalEnv)
 }
+
+# ----------------------------------------------------------------
+# non-op methods
+
+zeros_like.dual_number = function(x, ...) {
+  dual_number(zeros_like(x$value, ...),
+    zeros_like(x$value))
+}
+length.dual_number = function(x) {
+  length(x$value)
+}
+dim.dual_number = function(x) {
+  dim(x$value)
+}
+is.numeric.dual_number = function(x) { TRUE }
 
 # ----------------------------------------------------------------
 # dual operations
@@ -91,6 +108,8 @@ dual_minus = function(., e1, e2) {
 
 # Multiplication: (a + b*dx) * (c + d*dx) = (a * c) + (b * c + a * d)*dx
 dual_mult = function(., e1, e2) {
+  stopifnot(is.dual_number(e1))
+  stopifnot(is.dual_number(e2))
   e1$dual * e2$value + e1$value * e2$dual
 }
 
@@ -149,6 +168,12 @@ dual_subscr = function(val, x, ...) {
   dual_number(val,vd)
 }
 
+`[<-.dual_number` = function(x, ..., value) {
+  x$value[...] = value$value
+  x$dual[...] = value$dual
+  x
+}
+
 # helpers for use in dual-only tape traversal
 dual_rowSums = function(val, x, na.rm=F, dims=1) {
   rowSums(x$dual, na.rm=na.rm, dims=dims)
@@ -197,10 +222,6 @@ array.dual_number = function(data, dim) {
   val = array(data$value, dim)
   vd = dual_array(val, data, dim)
   dual_number(val, vd)
-}
-
-dim.dual_number = function(x) {
-  dim(x$value)
 }
 
 # list of all the dual operations we have defined

@@ -159,12 +159,28 @@ as.vector.tape_wrap = function(x, mode) {
 `[.tape_wrap` = function(x, ...) {
   tape_method_dispatch(`[`, "[", list(x), list(...))
 }
+# subscript assignment
+`[<-.tape_wrap` = function(x, ..., value) {
+  # we need to create a new tape_var to store the result
+  x$value[...] <- value$value
+  input_ids = c(x$id,value$id)
+  opname = "subscr_assign" # see ops-common.R
+  cropped = paste0(crop_repr(x$repr),", ",crop_repr(value$repr))
+  new_repr = paste0(opname, "(", cropped, ")")
+  tape_wrap(x, opname, input_ids, repr=new_repr, extra_args=list(...))
+}
+
+# emit cell with no inputs
+zeros_like.tape_wrap = function(x, ...) {
+  tape_var(zeros_like(x$value, ...))
+}
 
 # we don't expect dim() to return a wrapped value so it is not
 # considered a tape operation
 dim.tape_wrap = function(x) {
   dim(x$value)
 }
+is.numeric.tape_wrap = function(x) { TRUE }
 
 # helper for create_method
 crop_repr = Curry(crop_str, n=10)

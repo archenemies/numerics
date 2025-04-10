@@ -32,3 +32,4 @@ source_tests = function(fn) {
 source_tests("test-tape-wrap.R")
 source_tests("test-dual-number.R")
 source_tests("test-backprop.R")
+source_tests("test-nest.R")

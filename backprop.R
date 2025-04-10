@@ -99,6 +99,9 @@ back_array = function(adj_out, val, data, dims) {
 
 back_subscr = function(adj_out, val, x, ...) {
   x0 = zeros_like(x)
+  if(length(adj_out) != length(x0[...])) {
+    stop("Error in back_subscr")
+  }
   x0[...] = adj_out
   list(x0) # remember to return a list!
 }
@@ -311,7 +314,7 @@ tape_get_grad = function(x,y,wrap=F) {
     stop("Didn't find y in accumulator list")
   }
 
-  y_adj = ones_like(y)
+  y_adj = ones_like(y$value)
   if(wrap) y_adj = tape_var(y_adj)
   accums[[y$id]] = y_adj
 
@@ -347,8 +350,8 @@ tape_get_grad = function(x,y,wrap=F) {
       for(i in seq_along(res)) {
         if(!is.null(res[[i]])) {
           r = res[[i]]
-          if(!wrap) { stopifnot(is.numeric(r)) }
-          else { stopifnot(is.tape_wrap(r)) }
+          stopifnot(is.numeric(r))
+          if(wrap) { stopifnot(is.tape_wrap(r)) }
           stopifnot(length(inputs)>=i)
           iid = inputs[i]
           if(list_exists(accums, iid)) {

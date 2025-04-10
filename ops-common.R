@@ -27,7 +27,11 @@ zeros_like.default = function(x, zero=0) {
 }
 zeros_like <- function(...) { UseMethod("zeros_like") }
 
-ones_like = Curry(zeros_like, zero=1)
+# BUG: the Curry version doesn't do method dispatch for some reason:
+#ones_like = Curry(zeros_like, zero=1)
+ones_like = function(x) {
+  zeros_like(x, zero=1)
+}
 
 # TODO: make generic?
 rand_like = function(obj) {
@@ -41,6 +45,14 @@ rand_like = function(obj) {
 rand_array = function(dims) {
   v = rand_fill(prod(dims))
   array(v,dims)
+}
+
+# we need this version of subscript assignment for the opname of
+# "[<-", because the extra_args (...) must appear at the end.
+# but we only overload "[<-".
+subscr_assign = function(x, value, ...) {
+  x[...] <- value
+  x
 }
 
 if(0) {

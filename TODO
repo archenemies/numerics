@@ -1,10 +1,9 @@
 FHE 09 Apr 2025
 
-\- commit changes
-\- figure out how to clean up "special" tape_wrap methods
-- XXXs
-    \- cell_rerun_pert
-- nesting wrappers
+\- nesting wrappers
+  \- implement and test subscripted assignment
+  \- or create our own replacement method if necessary
+  - further tests?
 - implement cell_rerun_dual
   - test duals using cell_rerun_pert
 - make rowSums etc. more automatic

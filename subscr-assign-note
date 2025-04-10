@@ -1,0 +1,40 @@
+FHE 10 Apr 2025
+https://stackoverflow.com/questions/22407942/overloading-subscript-operator
+
+getGeneric('[')
+# standardGeneric for "[" defined from package "base"
+# function (x, i, j, ..., drop = TRUE)
+
+And :
+
+getGeneric('[<-')
+# standardGeneric for "[<-" defined from package "base"
+# function (x, i, j, ..., value)
+
+Then you implement it like this for example :
+
+`[<-.foo` <-
+function(x, i, j, value)
+{
+       ....
+
+}
+
+----------------
+
+See the source for [.data.frame as an example. You've got an x, an i, and a j, in
+that order.
+
+> `[.data.frame`
+function (x, i, j, ..... )
+> `[<-.data.frame`
+function (x, i, j, value)
+
+----------------
+`[<-.myclass` <- function(x,i=NULL,j=NULL,value) {
+    res <- unclass(x)
+    res[i] <- value
+    res
+}
+obj[1] <- 1
+
