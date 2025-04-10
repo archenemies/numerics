@@ -18,7 +18,7 @@ test_01_pert = function() {
   message("Passed test_pert")
 }
 
-# XXX generalize to vector x?
+# TODO: generalize to vector x?
 # or just always use random vectors to test
 tape_pert_numdiff = function(x,y,h=1e-4) {
   xp = x$value + h;
