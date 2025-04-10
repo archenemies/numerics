@@ -52,7 +52,7 @@ back_log = function(adj_out, val, x) {
   list(adj_out/x)
 }
 
-back_sum = function(adj_out, val, x) {
+back_sum = function(adj_out, val, x, ...) {
   stopifnot(length(adj_out)==1)
   stopifnot(length(val)==1)
 
@@ -157,6 +157,7 @@ cell_rerun_zero = function(ent, l, wrap) {
   l[[ent$id]] <- zeroval
   l
 }
+
 # XXX move the input-gathering to a helper function for sharing with dual version
 cell_rerun_pert = function(ent, l, promote) {
   # we add x specially. after that we call this
@@ -172,8 +173,12 @@ cell_rerun_pert = function(ent, l, promote) {
     }
   }
   # if wrap is true then this will be the wrapped operation
-  pert_output = do.call(ent$op, pert_inputs)
+  pert_output = do.call(ent$op, c(pert_inputs, ent$extra_args))
   l[[ent$id]] <- pert_output
+  if(!identical(dim(pert_output),dim(ent$value))) {
+    pv(dim(pert_output),dim(ent$value))
+    stop("Error: cell_rerun_pert call to ",ent$op," produced an object with different dimensions than original")
+  }
   l
 }
 cell_rerun_dual = function(ent, l) {
@@ -315,10 +320,10 @@ tape_get_grad = function(x,y,wrap=F) {
       if(!wrap) {
         val = ent$value
         unwrapped_inputs = lapply(input_ents, untapewrap)
-        args = append(list(adj_out, val), unwrapped_inputs)
+        args = c(list(adj_out, val), unwrapped_inputs, ent$extra_args)
       } else {
         stopifnot(is.tape_wrap(adj_out))
-        args = append(list(adj_out, ent), input_ents)
+        args = c(list(adj_out, ent), input_ents, ent$extra_args)
       }
       back_op = back_ops[[ent$op]]
       if(is.null(back_op)) {

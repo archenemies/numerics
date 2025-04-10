@@ -6,7 +6,8 @@ mysource("ops-common.R")
 .tape <- NULL
 
 # define the tape_wrap class
-tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
+tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value)),
+  extra_args=NULL) {
   stop_if_no_tape()
   # FHE 30 Mar 2025 sanity check, remove this if you actually want to
   # double-wrap:
@@ -14,7 +15,7 @@ tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value))) {
   stopifnot(is.integer(inputs))
   stopifnot(is.character(repr))
   res = structure(
-    list_vars(value, repr, op, inputs),
+    list_vars(value, repr, op, inputs, extra_args),
     class = "tape_wrap")
   res$id = .tape$next_id()
   .tape$add(res)
@@ -59,6 +60,9 @@ show_tape = function(tp=.tape) {
   ids = as.numeric(df$id)
   df$id = NULL
   df = cbind(id=ids,df)
+
+  # print the dimensions
+  df$dim = lapply(df$value, dim)
 
   # crop the (sometimes long) value strings with ...
   df$value = sapply(df$value, Curry(crop_str,n=15) %c% Curry(paste0,collapse=", ") %c% format)
@@ -133,56 +137,34 @@ basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve",
   )
 
 # operations with extra (non-wrapped) arguments are defined separately
-# below:
+# below. these go in extra_args in the tape_wrap object.
 
-# we don't expect dim() to return a wrapped value
-dim.tape_wrap = function(x) {
-  dim(x$value)
-}
-
-# note: ignores na.rm
 sum.tape_wrap = function(x, na.rm=F) {
-  result = sum(x$value)
-  new_repr = paste0("sum(",crop_repr(x$repr),")")
-  tape_wrap(result, "sum", x$id, repr=new_repr)
+  tape_method_dispatch(sum, "sum", list(x), list(na.rm=na.rm))
 }
-# note: adds a tape entry to remember "n"
+
 rep.tape_wrap = function(x, n) {
-  result = rep(x$value, n)
-  ntv = tape_var(n)
-  new_repr = paste0("rep(",crop_repr(x$repr),",",
-    as.character(n),")")
-  tape_wrap(result, "rep", c(x$id,ntv$id), repr=new_repr)
+  tape_method_dispatch(rep, "rep", list(x), list(n=n))
 }
-# note: adds a tape entry to remember "dims"
-array.tape_wrap = function(data, dims) {
-  result = array(data$value, dims)
-  dtv = tape_var(dims)
-  new_repr = paste0("array(",crop_repr(data$repr),",",
-    deparse1(dims),")")
-  tape_wrap(result, "array", c(data$id,dtv$id), repr=new_repr)
+array.tape_wrap = function(data, dim) {
+  tape_method_dispatch(array, "array", list(data), list(dim=dim))
 }
+
 length.tape_wrap = function(l) {
   length(l$value)
 }
-# ignores mode
 as.vector.tape_wrap = function(x, mode) {
-  stopifnot(missing(mode) || mode=="any" || mode=="numeric")
-  result = as.vector(x$value)
-  new_repr = paste0("as.vector(",crop_repr(x$repr),")")
-  tape_wrap(result, "as.vector", x$id, repr=new_repr)
+  tape_method_dispatch(as.vector, "as.vector", list(x), list(mode=mode))
 }
-# note: adds a tape entry to remember "dims"
 `[.tape_wrap` = function(x, ...) {
-  res = x$value[...]
-  args = list(...)
-  arg_cells = lapply(args, tape_var)
-  new_repr = paste0("subscr(",crop_repr(x$repr),",",
-    deparse1(args),")")
-  inputs = c(x$id,sapply(arg_cells, Curry(getElement,name="id")))
-  tape_wrap(res, "[", inputs, repr=new_repr)
+  tape_method_dispatch(`[`, "[", list(x), list(...))
 }
 
+# we don't expect dim() to return a wrapped value so it is not
+# considered a tape operation
+dim.tape_wrap = function(x) {
+  dim(x$value)
+}
 
 # helper for create_method
 crop_repr = Curry(crop_str, n=10)
@@ -192,50 +174,45 @@ crop_str <- function(str, n=13) {
   ifelse(nchar(str) > n, paste0(strtrim(str, n-3), '...'), str)
 }
 
-# Function to create and assign a tape_wrap method for 'op'
-create_method <- function(op) {
-  # the original function
-  op_func <- get(op)
+tape_method_dispatch = function(fn, opname, args, extra_args=NULL) {
+  # FHE 09 Apr 2025 break out of create_method
+  if(!all(sapply(args, is.tape_wrap))) {
+    stop("All arguments must be wrapped")
+  }
+  unwrapped_args <- lapply(args, untapewrap)
 
-  # the method name
-  method_name <- paste0(op, ".tape_wrap")
+  # the primary quantity:
+  result <- do.call(fn, c(unwrapped_args, extra_args))
+  # the wrapped quantity:
+  input_ids = sapply(args, function(tv) { tv$id })
+  input_reprs = lapply(args, function(tv) { tv$repr })
+  cropped = lapply(input_reprs, crop_repr)
+  new_repr = paste0(opname, "(", paste0(cropped, collapse=","), ")")
+  tape_wrap(result, opname, input_ids, repr=new_repr, extra_args=extra_args)
+}
+
+# Function to create and assign a tape_wrap method for the function
+# 'op'. This is called for all simple operators, for which there are
+# no extra (non-numeric) arguments.
+create_tape_method <- function(op) {
+  # the original function
+  op_fun <- get(op)
 
   # define the wrapper function. we'll fill in the argument names
   # later
   wrapper_func <- function(...) {
     args <- list(...);
-    unwrapped_args <- lapply(args, function(arg) {
-      if(is.tape_wrap(arg)) { arg$value } else { arg }
-    })
-    arg_text = lapply(substitute(...()),deparse)
-    if(!all(sapply(args, is.tape_wrap))) { # FHE 03 Apr 2025 XXX fix below
-      stop("All arguments must be wrapped")
-    }
-    wrapped_args <- lapply(seq_along(args), function(i) {
-      arg = args[[i]]
-      repr = arg_text[[i]]
-      # wrap all arguments, even strings and integers
-      if(!is.tape_wrap(arg)) {
-        stop("All arguments should be wrapped: op=",op)
-#        tape_var_repr(arg,repr)
-      } else { arg }
-    })
-    # the primary quantity:
-    result <- do.call(op_func, unwrapped_args)
-    # the wrapped quantity:
-    input_ids = sapply(wrapped_args, function(tv) { tv$id })
-    input_reprs = lapply(wrapped_args, function(tv) { tv$repr })
-    cropped = lapply(input_reprs, crop_repr)
-    new_repr = paste0(op, "(", paste0(cropped, collapse=","), ")")
-    tape_wrap(result, op, input_ids, repr=new_repr)
+    tape_method_dispatch(op_fun, op, args, NULL)
   }
 
+  # the method name
+  method_name <- paste0(op, ".tape_wrap")
   # now install the wrapper function
   assign(method_name, wrapper_func, envir = .GlobalEnv)
 }
 
 for (op in basic_ops) {
-  create_method(op)
+  create_tape_method(op)
 }
 
 if(mySourceLevel==0) {
