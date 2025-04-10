@@ -158,26 +158,34 @@ cell_rerun_zero = function(ent, l, wrap) {
   l
 }
 
-# XXX move the input-gathering to a helper function for sharing with dual version
-cell_rerun_pert = function(ent, l, promote) {
-  # we add x specially. after that we call this
-  # function with tape_wrap which we re-evaluate on perturbed inputs, and add to l
+# helper function from cell_rerun_pert for sharing with cell_rerun_dual
+tape_gather_alt_inputs = function(ent, l, promote) {
   inputs = ent$inputs
-  pert_inputs = list()
+  alt_inputs = list()
   for(i in seq_along(inputs)) {
     iid = inputs[i]
     if(list_exists(l,iid)) {
-      pert_inputs[[i]] = l[[iid]]
+      alt_inputs[[i]] = l[[iid]]
     } else {
-      pert_inputs[[i]] = promote(.tape$get(iid))
+      alt_inputs[[i]] = promote(.tape$get(iid))
     }
   }
+  alt_inputs
+}
+
+cell_rerun_pert = function(ent, l, promote) {
+  # we add x specially. after that we call this
+  # function with tape_wrap which we re-evaluate on perturbed inputs, and add to l
+
+  pert_inputs = tape_gather_alt_inputs(ent, l, promote)
+
   # if wrap is true then this will be the wrapped operation
   pert_output = do.call(ent$op, c(pert_inputs, ent$extra_args))
   l[[ent$id]] <- pert_output
   if(!identical(dim(pert_output),dim(ent$value))) {
     pv(dim(pert_output),dim(ent$value))
-    stop("Error: cell_rerun_pert call to ",ent$op," produced an object with different dimensions than original")
+    stop("Error: cell_rerun_pert call to ",ent$op,
+      " produced different dims than original")
   }
   l
 }
