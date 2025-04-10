@@ -213,10 +213,9 @@ cell_rerun_dual = function(ent, l) {
 # xaux: auxiliary value for "pert" and "dual" types
 # restrict_ids: restrict our attention to these tape cells (typically,
 #   ancestors of an objective)
-# wrap: if true then expect xaux to be a tape_wrap object, and produce
-#   tape_wrap'ped output
-forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
-  restrict_ids=NULL, wrap=FALSE) {
+forward_traverse = function(x, xaux=NULL, upto=NULL, restrict_ids=NULL,
+  engine=cell_rerun_zero) {
+
   stop_if_no_tape()
   n = .tape$length
   l = list()
@@ -227,23 +226,15 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
   restrict_ids = sort(restrict_ids)
 
   have_cell_id = function(id) { list_exists(l,id) }
-  maybe_unwrap = if(wrap) { identity } else { untapewrap }
-
-  fwd_process = switch(type,
-    init_accum=Curry(cell_rerun_zero,wrap=wrap),
-##    init_accum=function(x,l) {cell_rerun_zero(x,l,wrap=wrap)},
-    pert=Curry(cell_rerun_pert,promote=maybe_unwrap),
-    dual=cell_rerun_dual,
-    stop("Unknown get_accum_list type ", type))
 
   stopifnot(identical(x,.tape$get(x$id)))
 
-  if(type=="init_accum") {
-    l = fwd_process(x, l)
-  } else if(type=="dual" || type=="pert") {
+  if(!is.null(xaux)) {
     stopifnot(identical(dim(x$value), dim(xaux)))
-    if(wrap) stopifnot(is.tape_wrap(xaux))
     l[[x$id]] = xaux;
+  } else {
+    # used in cell_rerun_zero
+    l = engine(x, l)
   }
 
   # execute the computation
@@ -251,18 +242,34 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, type="init_accum",
     ent = .tape$get(i)
     inputs = ent$inputs
     if(any(sapply(inputs, have_cell_id))) {
-      l = fwd_process(ent, l)
+      l = engine(ent, l)
     }
   }
   return(l)
 }
 
-# XXX new args: wrap, promote
-tape_get_pert = function(x,xaux,y) {
+# rerun the computation with a different value for x
+# x,y: tape_wrap objects
+# xaux: the new value, must be a tape_wrap if wrap=T
+# wrap: if the new computation should add to the tape, and produce
+#   tape_wrap'ped output
+# promote: optional function to promote tape objects, e.g.
+#   dual_number, before they are combined with xaux's descendants
+tape_get_pert = function(x, xaux, y, wrap=F, promote=NULL) {
   stop_if_no_tape()
   # call forward_traverse(x, xaux=xaux, upto=y, type="pert")
   y_inputs = find_all_inputs(y)
-  l = forward_traverse(x, xaux=xaux, type="pert", restrict_ids=y_inputs)
+
+  if(!is.null(promote)) { pro = promote }
+  else if(!wrap) { pro = untapewrap }
+  else { stopifnot(is.tape_wrap(xaux))
+    pro = identity;
+  }
+
+  l = forward_traverse(x, xaux=xaux,
+    restrict_ids=y_inputs,
+    engine=Curry(cell_rerun_pert, promote=pro)
+  )
   l[[y$id]]
 }
 
@@ -302,8 +309,9 @@ tape_get_grad = function(x,y,wrap=F) {
     stop("tape_get_grad: y not a descendent of x")
   }
 
-  accums = forward_traverse(x, type="init_accum",
-    restrict_ids=y_inputs, wrap=wrap)
+  accums = forward_traverse(x,
+    restrict_ids=y_inputs,
+    engine=Curry(cell_rerun_zero,wrap=wrap))
   if(!list_exists(accums,y$id)) {
     stop("Didn't find y in accumulator list")
   }

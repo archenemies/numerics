@@ -10,8 +10,8 @@ test_01_pert = function() {
   use_tape(new_tape())
   setup_tape1()
   show_tape()
-  pv(forward_traverse(x))
-  pv(forward_traverse(x, xaux=1.01, type="pert"))
+  ## pv(forward_traverse(x))
+  ## pv(forward_traverse(x, xaux=1.01, type="pert"))
   stopifnot(tape_get_pert(x,1.02,qq)==30.2)
   stopifnot(tape_get_grad(x,qq)==10)
   check_tape_grad_pert(x,qq)
@@ -51,8 +51,10 @@ test_02_pert = function() {
   # now check that wrapped pert has the same grad
   y_inputs = find_all_inputs(y)
   tape_var(x1=x$value)
-  l = forward_traverse(x, xaux=x1, type="pert", restrict_ids=y_inputs, wrap=T)
-  y1 = l[[y$id]]
+  ## l = forward_traverse(x, xaux=x1, type="pert", restrict_ids=y_inputs,
+  ##   wrap=T)
+  ## y1 = l[[y$id]]
+  y1 = tape_get_pert(x, x1, y, wrap=T)
   stopifnot(is.tape_wrap(y1))
   pv(tape_get_grad(x1,y1))
   stopifnot(.tape$length == 13)
