@@ -213,15 +213,18 @@ cell_rerun_dual = function(ent, l) {
 # xaux: auxiliary value for "pert" and "dual" types
 # restrict_ids: restrict our attention to these tape cells (typically,
 #   ancestors of an objective)
-forward_traverse = function(x, xaux=NULL, upto=NULL, restrict_ids=NULL,
+forward_traverse = function(x, y, xaux=NULL,
   engine=cell_rerun_zero) {
 
   stop_if_no_tape()
   n = .tape$length
   l = list()
 
-  if(is.null(upto)) upto = .tape$get(n);
-  if(is.null(restrict_ids)) restrict_ids = as.integer(x$id %upto% upto$id);
+  y_inputs = find_all_inputs(y)
+  if(!x$id %in% y_inputs) {
+    stop("tape_get_grad: y not a descendent of x")
+  }
+  restrict_ids = y_inputs
   # sort ascending
   restrict_ids = sort(restrict_ids)
 
@@ -257,8 +260,7 @@ forward_traverse = function(x, xaux=NULL, upto=NULL, restrict_ids=NULL,
 #   dual_number, before they are combined with xaux's descendants
 tape_get_pert = function(x, xaux, y, wrap=F, promote=NULL) {
   stop_if_no_tape()
-  # call forward_traverse(x, xaux=xaux, upto=y, type="pert")
-  y_inputs = find_all_inputs(y)
+  # call forward_traverse
 
   if(!is.null(promote)) { pro = promote }
   else if(!wrap) { pro = untapewrap }
@@ -266,8 +268,7 @@ tape_get_pert = function(x, xaux, y, wrap=F, promote=NULL) {
     pro = identity;
   }
 
-  l = forward_traverse(x, xaux=xaux,
-    restrict_ids=y_inputs,
+  l = forward_traverse(x, y, xaux=xaux,
     engine=Curry(cell_rerun_pert, promote=pro)
   )
   l[[y$id]]
@@ -304,13 +305,7 @@ tape_get_grad = function(x,y,wrap=F) {
   stopifnot(length(y$value)==1)
 
   # call forward_traverse
-  y_inputs = find_all_inputs(y)
-  if(!x$id %in% y_inputs) {
-    stop("tape_get_grad: y not a descendent of x")
-  }
-
-  accums = forward_traverse(x,
-    restrict_ids=y_inputs,
+  accums = forward_traverse(x, y,
     engine=Curry(cell_rerun_zero,wrap=wrap))
   if(!list_exists(accums,y$id)) {
     stop("Didn't find y in accumulator list")
