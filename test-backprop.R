@@ -12,7 +12,7 @@ test_01_pert = function() {
   show_tape()
   ## pv(forward_traverse(x))
   ## pv(forward_traverse(x, xaux=1.01, type="pert"))
-  stopifnot(tape_get_pert(x,1.02,qq)==30.2)
+  stopifnot(tape_get_pert(x,qq,1.02)==30.2)
   stopifnot(tape_get_grad(x,qq)==10)
   check_tape_grad_pert(x,qq)
   message("Passed test_pert")
@@ -22,7 +22,7 @@ test_01_pert = function() {
 # or just always use random vectors to test
 tape_pert_numdiff = function(x,y,h=1e-4) {
   xp = x$value + h;
-  yp = tape_get_pert(x, xp, y)
+  yp = tape_get_pert(x, y, xp)
   (yp-y$value)/h
 }
 check_tape_grad_pert = function(x,y,tol=1e-2) {
@@ -54,7 +54,7 @@ test_02_pert = function() {
   ## l = forward_traverse(x, xaux=x1, type="pert", restrict_ids=y_inputs,
   ##   wrap=T)
   ## y1 = l[[y$id]]
-  y1 = tape_get_pert(x, x1, y, wrap=T)
+  y1 = tape_get_pert(x, y, x1, wrap=T)
   stopifnot(is.tape_wrap(y1))
   pv(tape_get_grad(x1,y1))
   stopifnot(.tape$length == 13)

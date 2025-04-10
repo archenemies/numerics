@@ -258,7 +258,7 @@ forward_traverse = function(x, y, xaux=NULL,
 #   tape_wrap'ped output
 # promote: optional function to promote tape objects, e.g.
 #   dual_number, before they are combined with xaux's descendants
-tape_get_pert = function(x, xaux, y, wrap=F, promote=NULL) {
+tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
   stop_if_no_tape()
   # call forward_traverse
 
