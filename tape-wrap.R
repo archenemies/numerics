@@ -143,8 +143,8 @@ sum.tape_wrap = function(x, na.rm=F) {
   tape_method_dispatch(sum, "sum", list(x), list(na.rm=na.rm))
 }
 
-rep.tape_wrap = function(x, n) {
-  tape_method_dispatch(rep, "rep", list(x), list(n=n))
+rep.tape_wrap = function(x, ...) {
+  tape_method_dispatch(rep, "rep", list(x), list(...))
 }
 array.tape_wrap = function(data, dim) {
   tape_method_dispatch(array, "array", list(data), list(dim=dim))
@@ -162,12 +162,13 @@ as.vector.tape_wrap = function(x, mode) {
 # subscript assignment
 `[<-.tape_wrap` = function(x, ..., value) {
   # we need to create a new tape_var to store the result
-  x$value[...] <- value$value
+  val = x$value
+  val[...] <- value$value
   input_ids = c(x$id,value$id)
   opname = "subscr_assign" # see ops-common.R
   cropped = paste0(crop_repr(x$repr),", ",crop_repr(value$repr))
   new_repr = paste0(opname, "(", cropped, ")")
-  tape_wrap(x, opname, input_ids, repr=new_repr, extra_args=list(...))
+  tape_wrap(val, opname, input_ids, repr=new_repr, extra_args=list(...))
 }
 
 # emit cell with no inputs
