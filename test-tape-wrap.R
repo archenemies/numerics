@@ -33,6 +33,32 @@ setup_tape2 = function() {
   # d^2y/dx^2 = 4
 }
 
+setup_tape3 = function() {
+  # test rep, `[`, and sum
+  tape_var(x = 1)
+  xo = tape_var(rand_array(10))
+  xc = rep_like(x, xo)*xo
+
+  zc = xc[4:6]
+
+  zo = tape_var(rand_array(dim(zc)))
+  z = sum(zc*zo)
+
+  export(x,z)
+}
+
+setup_tape4 = function() {
+  tape_var(x = 2, y = 3)
+  xo = tape_var(rand_array(10))
+  xc = rep_like(x, xo)*xo
+  yo = tape_var(rand_array(10))
+  yc = rep_like(y, yo)*yo
+  wc = exp(-xc[1:2]+yc[1:2]) # two dimensions
+  uc = sum(xc[3:10]*yc[3:10])
+  z = sum(wc*rep_like(uc,wc))
+  export(x,z)
+}
+
 test_tape1 = function() {
   tp = new_tape()
   use_tape(tp)

@@ -3,7 +3,8 @@
 
 mysource("backprop.R")
 
-mysource("test-tape-wrap.R") # for setup_tape{1,2}()
+mysource("test-tape-wrap.R") # for setup_tape*()
+mysource("check-dual-ops.R") # for check_dual_function
 
 test_01_pert = function() {
   message("In test_01_pert")
@@ -78,6 +79,22 @@ test_03_grad_wrap = function() {
   message("Passed test_03_grad_wrap")
 }
 
+test_jvp = function() {
+  use_tape(new_tape())
+  setup_tape4()
+  xdot = rand_like(x)
+  pv(z)
+  pv(tape_get_jvp(x,z,xdot))
+  jvp_fn = function(xdual) {
+    if(is.dual_number(xdual)) {
+      dual_number(z$value, tape_get_jvp(x,z,xdual$dual))
+    } else {
+      tape_get_pert(x,z,xdual)
+    }
+  }
+  check_dual_function(jvp_fn, list(dual_number(x$value, xdot)))
+}
+
 mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
@@ -86,5 +103,6 @@ if(mySourceLevel==0) {
 #  test_03_grad_wrap()
 #  test_check_back_plus()
 #  test_check_back_ops()
-  test_check_back_subscr()
+#  test_check_back_subscr()
+  test_jvp()
 }

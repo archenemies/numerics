@@ -33,20 +33,9 @@ test_check_back_plus = function(dim=3) {
 test_check_back_subscr = function() {
   message("In test_check_back_subscr")
   use_tape(new_tape())
-  tape_var(x = 1)
-  xo = tape_var(rand_array(10))
-  xc = rep_like(x, xo)*xo
-
-  zc = xc[4:6]
-
-  zo = tape_var(rand_array(dim(zc)))
-  z = sum(zc*zo)
-
-  export(x,z)
+  setup_tape3()
   show_tape()
-
   pv(tape_get_grad(x,z))
-
   check_tape_grad_pert(x,z)
 }
 

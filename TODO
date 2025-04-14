@@ -1,9 +1,15 @@
-FHE 09 Apr 2025
+# FHE 09 Apr 2025
+FHE 13 Apr 2025
 
 \- nesting wrappers
   \- implement and test subscripted assignment
   \- or create our own replacement method if necessary
   - further tests?
+  - pow()
+  - test rep(each=)
+  - use arg names in tape_var repr?
+  - test tape_get_jvp with wrap=T
+  - test HVP via JVP and grad
 - implement cell_rerun_dual
   - test duals using cell_rerun_pert
 - make rowSums etc. more automatic
