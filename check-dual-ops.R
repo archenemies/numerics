@@ -1,10 +1,16 @@
 # FHE 24 Mar 2025
 
 # from check_dual_op
-# input is a list of arguments for fn
+# input is a list of dual_number arguments for fn
+# function should work on any numeric input
+# compare dual output (an_deriv below) with the numerical derivative
+# from collapse_dual
 check_dual_function = function(fn, input, delta = 1e-7, tol = 1e-4,
   fname = deparse(substitute(fn))) {
   args = input
+  if(!all(sapply(args,is.dual_number))) {
+    stop("All inputs must be dual_number's")
+  }
   unwrapped_args = lapply(args, undualnumber)
 
   unwrapped_delta_args = lapply(args, Curry(collapse_dual,delta=delta))
