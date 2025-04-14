@@ -168,10 +168,17 @@ dual_subscr = function(val, x, ...) {
   dual_number(val,vd)
 }
 
-`[<-.dual_number` = function(x, ..., value) {
+# see ops-common.R
+# this is called by backprop for "subscr_assign" dual op
+# it has a better argument order
+dual_subscr_assign = function(x, value, ...) {
   x$value[...] = value$value
   x$dual[...] = value$dual
   x
+}
+
+`[<-.dual_number` = function(x, ..., value) {
+  dual_subscr_assign(x, value, ...)
 }
 
 # helpers for use in dual-only tape traversal
@@ -202,8 +209,9 @@ sum.dual_number = function(x, na.rm=F) {
   dual_number(val,vd)
 }
 
-dual_rep = function(val, x, n) {
-  rep(x$dual, n)
+# use ... so we can have n= or each=
+dual_rep = function(val, x, ...) {
+  rep(x$dual, ...)
 }
 
 # replicate a dual_number
