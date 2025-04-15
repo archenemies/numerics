@@ -196,13 +196,16 @@ cell_rerun_pert = function(ent, l, promote) {
 # engine for dual computations.
 # promote should unwrap inputs if wrap=F, and create a dual_number
 # with zero dual around the array or tape_wrap object
-cell_rerun_dual = function(ent, l, promote) {
+cell_rerun_dual = function(ent, l, wrap=F) {
   # similar to add_pert_entry but with propagation of duals
   # l contains dual_number versions of each cell
   # use dual_op to construct from value and create dual_number from
   # this. also, need version storing/taking a list of multiple duals
 
-  dual_inputs = tape_gather_alt_inputs(ent, l, promote)
+  if(wrap) pro = dual_number
+  else pro = dual_number %c% untapewrap
+
+  dual_inputs = tape_gather_alt_inputs(ent, l, pro)
   if(!all(sapply(dual_inputs,is.dual_number))) {
     stop("Not all inputs are dual numbers: ",ent$id)
   }
@@ -212,17 +215,15 @@ cell_rerun_dual = function(ent, l, promote) {
     stop("Dual operation not found for ",ent$op)
   }
 
+  if(wrap) primal = ent
+  else primal = ent$value
+
   # if wrap is true then the output will be a dual_number containing a
   # tape_wrap otherwise just a dual_number.
-  dual_output = do.call(dual_op, c(list(ent$value), dual_inputs, ent$extra_args))
+  dual_output = do.call(dual_op, c(list(primal), dual_inputs, ent$extra_args))
 
-  l[[ent$id]] <- dual_number(ent$value, dual_output)
+  l[[ent$id]] <- dual_number(primal, dual_output)
 
-  if(!identical(dim(dual_output),dim(ent$value))) {
-    pv(dim(dual_output),dim(ent$value))
-    stop("Error: cell_rerun_dual call to ",ent$op,
-      " produced different dims than original")
-  }
   l
 }
 
@@ -273,6 +274,7 @@ forward_traverse = function(x, y, xaux=NULL,
   for(i in restrict_ids) {
     ent = .tape$get(i)
     inputs = ent$inputs
+#    message("forward_traverse: ",sv(i,inputs,ent$op))
     if(any(sapply(inputs, have_cell_id))) {
       l = engine(ent, l)
     }
@@ -309,21 +311,20 @@ tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
 # like tape_get_pert but only track dual components
 # if wrap=T then xdot should be a tape_wrap
 tape_get_dual_pert =
-tape_get_jvp = function(x,y, xdot, wrap=F, promote=NULL) {
+tape_get_jvp = function(x,y, xdot, wrap=F) {
   # adapted from tape_get_pert
   stop_if_no_tape()
   # call forward_traverse
 
-  if(!is.null(promote)) { pro = promote }
-  else if(!wrap) {
-    pro = function(x) { dual_number(untapewrap(x)) }
+  if(!wrap) {
+    xaux = dual_number(x$value, xdot)
   } else {
-    pro = dual_number;
+    stopifnot(is.tape_wrap(xdot))
+    xaux = dual_number(x, xdot)
   }
-  xaux = dual_number(x$value, xdot)
 
   l = forward_traverse(x, y, xaux=xaux,
-    engine=Curry(cell_rerun_dual, promote=pro)
+    engine=Curry(cell_rerun_dual, wrap=wrap)
   )
   l[[y$id]]$dual
 }

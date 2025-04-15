@@ -2,6 +2,7 @@
 # testing functions for backprop implementation
 
 mysource("backprop.R")
+mysource("tape-wrap.R")
 
 mysource("test-tape-wrap.R") # for setup_tape*()
 mysource("check-dual-ops.R") # for check_dual_function
@@ -95,6 +96,26 @@ test_jvp = function() {
   check_dual_function(jvp_fn, list(dual_number(x$value, xdot)))
 }
 
+test_jvp_wrap = function() {
+  tol = 1e-4
+  use_tape(new_tape())
+  setup_tape4()
+  tape_var(xdot = rand_like(x))
+
+  zdot = tape_get_jvp(x,z,xdot,wrap=T)
+
+  .xdot1 = rand_like(x)
+
+  .zdot1.pert = tape_get_pert(xdot,zdot,.xdot1)
+  .zdot1.jvp = tape_get_jvp(x,z,.xdot1)
+
+  dif = sum(abs(.zdot1.pert - .zdot1.jvp))
+  if(dif > tol) {
+    stop("Failed test_jvp_wrap: ",sv(dif,tol))
+  }
+  message("Passed test_jvp_wrap")
+}
+
 mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
@@ -104,5 +125,6 @@ if(mySourceLevel==0) {
 #  test_check_back_plus()
 #  test_check_back_ops()
 #  test_check_back_subscr()
-  test_jvp()
+#  test_jvp()
+   test_jvp_wrap()
 }
