@@ -1,6 +1,8 @@
 # FHE 06 Apr 2025
 # create generic methods
 
+mysource("generic-deparse.R")
+
 # example generic method pair:
 ## log.default <- function(...) { base::log(...) }
 ## log <- function(...) { UseMethod("log") }
