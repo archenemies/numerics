@@ -3,13 +3,18 @@
 # for sources see num-wrap.R, tape-wrap.R
 # also https://grok.com/chat/c7aace3d-072c-4f47-aa28-f5a1923dfdfa?show_subscribe=0
 
+mysource("tape-wrap.R")
+
 dual_number = function(value, dual=zeros_like(value)) {
 ## dual_number = function(value, dual=value*0) {
-  if (!is.numeric(value) || !is.numeric(dual)) {
+  if(!is.numeric(value) || !is.numeric(dual)) {
     stop("Both primal and dual must be numeric")
   }
-  if (!identical(dim(value), dim(dual))) {
+  if(!identical(dim(value), dim(dual))) {
     stop("Primal and dual must have the same dimensions")
+  }
+  if(is.tape_wrap(value) != is.tape_wrap(dual)) {
+    stop("dual_number safety check: only one argument is tape_wrap")
   }
   structure(list(value = value, dual = dual), class = "dual_number")
 }
