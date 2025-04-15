@@ -6,6 +6,7 @@
 mysource("mycli.R");
 
 options(setWidthOnResize=TRUE)
+options(width=160) # set terminal width
 
 suppressMessages(require(grDevices))
 # FHE 20 Sep 2018 why was i turning buffering off? that's the worst
