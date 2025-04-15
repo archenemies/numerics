@@ -67,6 +67,9 @@ show_tape = function(tp=.tape) {
   # crop the (sometimes long) value strings with ...
   df$value = sapply(df$value, Curry(crop_str,n=15) %c% Curry(paste0,collapse=", ") %c% format)
 
+  df$extra_args = sapply(df$extra_args, deparse1)
+  ## df$extra_args = sapply(df$extra_args, Curry(crop_str,n=6) %c% deparse1)
+
   # row.names are just ids, so suppress them
   print(df,row.names=F)
 }
@@ -192,6 +195,7 @@ crop_str <- function(str, n=13) {
 }
 
 tape_method_dispatch = function(fn, opname, args, extra_args=NULL) {
+#  message("tape_method_dispatch: ", sv(opname, args))
   # FHE 09 Apr 2025 break out of create_method
   if(!all(sapply(args, is.tape_wrap))) {
     stop("All arguments must be wrapped")
