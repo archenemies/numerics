@@ -1,6 +1,19 @@
+FHE 19 Apr 2025
+
+\- test dual_number of dual_number for second derivatives
+  \- verify that we can achieve the same thing more cheaply using tape
+
+FHE 15 Apr 2025
+
+(from handwritten notes from 14th)
+- tape_get_pert needs variant that computes multiple values each time (for Hessian)
+- specialize dual_number with has_dual
+- "" tape_wrap with is_zero, is_one
+    - check that tape gets shorter
+
 FHE 14 Apr 2025
 
-- pow()
+- pow(), sumsq
 - test rep(each=)
 - use arg names in tape_var repr?
 - test HVP via JVP and grad

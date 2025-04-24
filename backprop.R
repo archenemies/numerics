@@ -309,9 +309,10 @@ tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
 # was tape_get_dual
 # propagate dual numbers through an existing tape
 # like tape_get_pert but only track dual components
+# xdot is the new dual component of x
 # if wrap=T then xdot should be a tape_wrap
 tape_get_dual_pert =
-tape_get_jvp = function(x,y, xdot, wrap=F) {
+tape_get_jvp = function(x, y, xdot, wrap=F) {
   # adapted from tape_get_pert
   stop_if_no_tape()
   # call forward_traverse
