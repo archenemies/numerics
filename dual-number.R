@@ -19,6 +19,10 @@ dual_number = function(value, dual=zeros_like(value)) {
   structure(list(value = value, dual = dual), class = "dual_number")
 }
 
+dual_var = function(value) {
+  dual_number(value, ones_like(value))
+}
+
 is.dual_number = function(x) { inherits(x, "dual_number") }
 
 print.dual_number = function(x) {
