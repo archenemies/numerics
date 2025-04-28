@@ -1,3 +1,36 @@
+FHE 28 Apr 2025
+
+- test loading of word vectors and similarity checking
+  - still working on smaller version of the data
+- need vec_wrap class to compute loss gradient matrix for query heuristic
+  - specialize constants and think about doing the same thing with has_dual in dual_number
+
+FHE 24 Apr 2025
+
+- word vectors
+  /- need a python tool to translate word vector databases to CSV or some standard format
+  - need a C++ tool to look up a wordvector for a word
+    \- create index of .bin file in ASCII
+    /- can use grep and sgrep to look up entries
+    \- create a matrix at runtime using a subset of the entries (e.g. all lowercase, single-word terms)
+    \- (working with grok to create some C tools for merging wordlists)
+
+- HVP via JVP
+  - (the hessian is the jacobian of the gradient function?)
+- NLCG
+  - design interface
+    - need dual_ops and back_ops
+    - but not tracing actual iterations
+    - need hvp and gradient function of position and xdot
+      - pass tape_get_* for these
+    - or NLCG should access the tape directly
+    - is gradient descent simpler to think about?
+      - x_new = optim(x0,y)
+      - is there enough here for implicit function theorem?
+    - use hvp and CG for dual_ops and back_ops
+  - copy from python version
+  - plot the trajectory
+
 FHE 19 Apr 2025
 
 \- test dual_number of dual_number for second derivatives
@@ -28,7 +61,8 @@ FHE 07 Apr 2025
   \- test subscripting
 \- dual helpers
   \- test
-- duals in forward-traverse -> JVP & HVP
+\- duals in forward-traverse -> JVP
+    - & HVP
 - Newton and NLCG steps
 - nested wrapper objects
 - regularity optimization - show probe points and trajectory

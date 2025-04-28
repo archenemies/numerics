@@ -1,0 +1,90 @@
+pip install jax jaxlib numpy pandas
+
+wget https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.en.300.vec.gz
+
+core.py:
+import gzip
+import numpy as np
+import pandas as pd
+import jax.numpy as jnp
+from jax import grad, jit
+from jax import random
+from typing import List, Tuple
+
+# --- Load word vectors from FastText (.vec or .vec.gz) ---
+def load_word_vectors(path: str, limit: int = 50000) -> Tuple[List[str], jnp.ndarray]:
+    with gzip.open(path, 'rt') if path.endswith('.gz') else open(path, 'r', encoding='utf-8') as f:
+        vocab = []
+        vecs = []
+        first_line = f.readline()  # Skip header line
+        for i, line in enumerate(f):
+            if i >= limit:
+                break
+            parts = line.rstrip().split(' ')
+            word = parts[0]
+            vec = np.array([float(x) for x in parts[1:]], dtype=np.float32)
+            vocab.append(word)
+            vecs.append(vec)
+    return vocab, jnp.array(vecs)
+
+# --- Logistic regression model ---
+def predict(params, X):
+    W, b = params
+    logits = jnp.dot(X, W) + b
+    return 1 / (1 + jnp.exp(-logits))  # Sigmoid
+
+# --- Loss function (binary cross entropy) ---
+def loss(params, X, y):
+    preds = predict(params, X)
+    return -jnp.mean(y * jnp.log(preds + 1e-7) + (1 - y) * jnp.log(1 - preds + 1e-7))
+
+# --- Training loop ---
+def train(X_train, y_train, lr=0.1, steps=500):
+    key = random.PRNGKey(0)
+    W = random.normal(key, shape=(X_train.shape[1],))
+    b = 0.0
+    params = (W, b)
+   
+    grad_loss = jit(grad(loss))
+
+    for step in range(steps):
+        grads = grad_loss(params, X_train, y_train)
+        params = (
+            params[0] - lr * grads[0],
+            params[1] - lr * grads[1],
+        )
+        if step % 50 == 0:
+            print(f"Step {step}, Loss: {loss(params, X_train, y_train):.4f}")
+   
+    return params
+
+
+train.py:
+# Example usage
+vocab, vecs = load_word_vectors("cc.en.300.vec.gz", limit=50000)
+
+# Example labels: assume user knows these words
+known_words = ["cat", "dog", "tree", "house"]
+unknown_words = ["quasar", "regolith", "joule", "synapse"]
+
+def get_indices(words):
+    word_to_idx = {word: i for i, word in enumerate(vocab)}
+    return [word_to_idx[w] for w in words if w in word_to_idx]
+
+X_known = vecs[get_indices(known_words)]
+X_unknown = vecs[get_indices(unknown_words)]
+
+X_train = jnp.concatenate([X_known, X_unknown], axis=0)
+y_train = jnp.concatenate([jnp.ones(len(X_known)), jnp.zeros(len(X_unknown))], axis=0)
+
+params = train(X_train, y_train)
+
+# Score the whole vocabulary
+scores = predict(params, vecs)
+
+# Top 10 most "known-looking" and "unknown-looking" words
+top_known = [(vocab[i], float(scores[i])) for i in jnp.argsort(-scores)[:10]]
+top_unknown = [(vocab[i], float(scores[i])) for i in jnp.argsort(scores)[:10]]
+
+print("Most known-looking words:", top_known)
+print("Most unknown-looking words:", top_unknown)
