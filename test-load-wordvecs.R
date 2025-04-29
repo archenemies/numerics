@@ -12,10 +12,14 @@ vocab_size = header[2]
 
 wvconn = file(wordvec_fn, "rb")
 wvs = readBin(wvconn, numeric(), size=4, n=vocab_size*vector_length)
-dim(wvs_raw) <- c(vocab_size, vector_length)
+dim(wvs) <- c(vocab_size, vector_length)
 
-wtab = read.table(table_fn, quote=NULL, col.names=c("index","binindex","word"))
+wtab = read.table(table_fn, quote=NULL,
+  col.names=c("index", "orig.index", "word"))
 
+wvtab = cbind(wtab, wv=wvs, awv=abs(wvs))
+
+#structure(list(wtab, ), class=
 
 # this takes too long
 #wvs = matrix(wvs_raw, ncol=vector_length)
