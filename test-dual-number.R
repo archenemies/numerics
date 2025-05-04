@@ -82,6 +82,19 @@ test_dual_array = function() {
   check_dual_function(array_fn, list(array_obj))
 }
 
+test_dual_c = function() {
+  c_fn = function(x) {
+    sum(c(x,x)*c(
+      zeros_like(x,zero=2),
+      zeros_like(x,zero=1)))
+  }
+  c_obj = dual_number(
+    rand_array(10),
+    rand_array(10)
+  )
+  check_dual_function(c_fn, list(c_obj))
+}
+
 test_dual_dual = function(tol=1e-5) {
   xv = 5
   x = dual_number(
@@ -151,6 +164,7 @@ if(mySourceLevel==0) {
   ## test_dual_number1()
   ## test_dual_ops()
   ## test_dual_ops(dim=c(3,2,4))
-  test_dual_dual()
-  test_tape_dual_dual()
+  ## test_dual_dual()
+  ## test_tape_dual_dual()
+  test_dual_c()
 }

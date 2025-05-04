@@ -230,6 +230,11 @@ rep.dual_number = function(x, ...) {
   dual_number(val, vd)
 }
 
+dual_c = function(val, ...) {
+  args = list(...)
+  do.call(c, lapply(args, function(x) {x$dual}))
+}
+
 dual_array = function(val, data, dim) {
   array(data$dual, dim)
 }
@@ -252,7 +257,8 @@ basic_dual_ops = list(
   "%*%"=dual_mat_mult,
   "solve"=dual_solve,
   "exp"=dual_exp,
-  "log"=dual_log
+  "log"=dual_log,
+  "c"=dual_c
 )
 # operations defined specially: sum, rowSums, colSums, etc.
 # because one or more arguments is not a dual_number
@@ -263,14 +269,14 @@ dual_ops = c(basic_dual_ops,
     "rowSums"=dual_rowSums,
     "colSums"=dual_colSums,
     "array"=dual_array,
-    "rep"=dual_rep
+    "rep"=dual_rep,
+    "c"=dual_c
   )
 )
 
 # generate methods for the basic operations
-basic_ops = names(basic_dual_ops)
 # 'for' causes broken lexical scoping so use lapply
-lapply(basic_ops, function(nm) {
+lapply(names(basic_dual_ops), function(nm) {
   create_dual_method(nm, basic_dual_ops[[nm]])
 })
 

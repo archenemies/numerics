@@ -1,9 +1,11 @@
 FHE 03 May 2025
 
+- somehow check dimensions in tape_wrap for * + - etc.
 \- 'each' in back_rep backprop.R
   \- extend rep_like
   \- test_rep_each
-- c(), cbind()?
+\- c()
+- cbind()?
 - nclg
   - need version of tape_get_pert with multiple input and output variables
     - this is just because we'll want the object value to see if it doesn't decrease

@@ -142,6 +142,22 @@ test_rep_each = function() {
   check_tape_grad_pert(r,z)
 }
 
+test_back_c = function() {
+  message("in test_back_c")
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(2))
+  tape_var(x1 = rand_array(4))
+  x = c(x0*rep_like(r, x0),x1*rep_like(r, x1))
+  pv(dim(x))
+  tape_var(y = rand_array(c(6)))
+  pv(dim(y))
+  z = sum(y*dim_like(x,y))
+  export(r,x,y,z)
+
+  check_tape_grad_pert(r,z)
+}
 
 mysource("check-back-ops.R")
 
@@ -154,6 +170,7 @@ if(mySourceLevel==0) {
 #  test_check_back_subscr()
 #  test_jvp()
 #   test_jvp_wrap()
-  test_rep()
-  test_rep_each()
+#  test_rep()
+#  test_rep_each()
+  test_back_c()
 }

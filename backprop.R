@@ -96,6 +96,19 @@ back_rep = function(adj_out, val, x, ...) {
   list(dim_like(v,x))
 }
 
+back_c = function(adj_out, val, ...) {
+  args = list(...)
+  lens = lapply(args, length)
+  offs = c(0,cumsum(lens))
+  # loop through args
+  lapply(seq_along(args),
+    function(i) {
+      dim_like(adj_out[(offs[i]+1) %upto% offs[i+1]],
+        args[[i]])
+    }
+  )
+}
+
 back_as.vector = function(adj_out, val, x) {
   # adj_out is a vector
   # x is a vector or array
@@ -131,6 +144,7 @@ basic_back_ops = list(
 
   "sum"=back_sum,
   "rep"=back_rep,
+  "c"=back_c,
   "as.vector"=back_as.vector,
   "array"=back_array,
   "["=back_subscr

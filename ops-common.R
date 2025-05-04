@@ -3,6 +3,11 @@
 mysource("generic-ops.R")
 
 dim_like = function(v,x) {
+  if(length(v) != length(x)) {
+    stop("length mismatch in dim_like: ",
+      sv(length(v)), "!=",
+      sv(length(x)))
+  }
   if(is.null(dim(x)))
     as.vector(v)
   else

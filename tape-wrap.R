@@ -136,7 +136,7 @@ untapewrap = function(tw) {stopifnot(is.tape_wrap(tw)); tw$value}
 
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve",
-  "exp", "log"
+  "exp", "log", "c"
   )
 
 # operations with extra (non-wrapped) arguments are defined separately
@@ -148,6 +148,9 @@ sum.tape_wrap = function(x, na.rm=F) {
 
 rep.tape_wrap = function(x, ...) {
   tape_method_dispatch(rep, "rep", list(x), list(...))
+}
+c.tape_wrap = function(x, ...) {
+  tape_method_dispatch(c, "c", list(...), list())
 }
 array.tape_wrap = function(data, dim) {
   tape_method_dispatch(array, "array", list(data), list(dim=dim))
