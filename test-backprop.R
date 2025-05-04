@@ -159,6 +159,25 @@ test_back_c = function() {
   check_tape_grad_pert(r,z)
 }
 
+test_dim_check = function() {
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(3))
+  passed = F;
+  tryCatch({ x = r * x0 },
+    error = function(e) {
+      if(grepl("mismatch", e$message)) {
+        passed <<- T
+      } else {
+        stop("Unknown error: ",e)
+      }
+    }
+  )
+  stopifnot(passed)
+  message("passed")
+}
+
 mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
@@ -172,5 +191,6 @@ if(mySourceLevel==0) {
 #   test_jvp_wrap()
 #  test_rep()
 #  test_rep_each()
-  test_back_c()
+#  test_back_c()
+  test_dim_check()
 }

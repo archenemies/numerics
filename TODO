@@ -1,6 +1,6 @@
 FHE 03 May 2025
 
-- somehow check dimensions in tape_wrap for * + - etc.
+\- somehow check dimensions in tape_wrap for * + - etc.
 \- 'each' in back_rep backprop.R
   \- extend rep_like
   \- test_rep_each

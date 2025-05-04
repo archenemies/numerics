@@ -197,6 +197,10 @@ crop_str <- function(str, n=13) {
   ifelse(nchar(str) > n, paste0(strtrim(str, n-3), '...'), str)
 }
 
+# we don't do implicit recycling, so we need extra dimension checks
+# for these operations:
+dim_check_ops <- c("+", "*", "-", "/")
+
 tape_method_dispatch = function(fn, opname, args, extra_args=NULL) {
 #  message("tape_method_dispatch: ", sv(opname, args))
   # FHE 09 Apr 2025 break out of create_method
@@ -204,6 +208,16 @@ tape_method_dispatch = function(fn, opname, args, extra_args=NULL) {
     stop("All arguments must be wrapped")
   }
   unwrapped_args <- lapply(args, untapewrap)
+
+  if(opname %in% dim_check_ops) {
+    dims = lapply(args, dim)
+    for(i in 2 %upto% length(dims)) {
+      if(!identical(dims[[i]],dims[[1]])) {
+        stop("Dimension mismatch for ",opname,": ",
+          sv(i,dims[[1]],dims[[i]]))
+      }
+    }
+  }
 
   # the primary quantity:
   result <- do.call(fn, c(unwrapped_args, extra_args))
