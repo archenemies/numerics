@@ -132,14 +132,14 @@ test_tape_dual_dual = function(tol=1e-5) {
   stopifnot(abs(yddv$dual$dual - grad2) < tol)
 
   xdot = ones_like(xtv)
-  ydtv = tape_get_dual_pert(xtv, ytv, xdot, wrap=T)
+  ydtv = tape_get_dual(xtv, ytv, xdot, wrap=T)
   pv(ydtv)
 
   stopifnot(abs(ydtv$value-grad1$value) < tol)
 
   # a bit hard to understand, but this calculates second derivative
   # using dual ops
-  yddtv = tape_get_dual_pert(xtv, ydtv, xdot, wrap=T)
+  yddtv = tape_get_dual(xtv, ydtv, xdot, wrap=T)
   pv(yddtv)
 
   stopifnot(abs(yddtv$value-grad2) < tol)
