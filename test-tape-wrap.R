@@ -47,6 +47,8 @@ setup_tape3 = function() {
   export(x,z)
 }
 
+# XXX note this only replicates scalars, we need to test replicating
+# vectors
 setup_tape4 = function() {
   tape_var(x = 2, y = 3)
   xo = tape_var(rand_array(10))
