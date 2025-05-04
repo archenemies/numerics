@@ -2,7 +2,7 @@
 
 # from check_dual_op
 # input is a list of dual_number arguments for fn
-# function should work on any numeric input
+# function should work on any numeric input, and give scalar output
 # compare dual output (an_deriv below) with the numerical derivative
 # from collapse_dual
 check_dual_function = function(fn, input, delta = 1e-7, tol = 1e-4,
@@ -36,6 +36,7 @@ check_dual_function = function(fn, input, delta = 1e-7, tol = 1e-4,
 }
 
 # Function to check dual number operation using numerical differentiation
+# XXX add extra_args and curry it onto op_func (for e.g. rep)
 check_dual_op <- function(op, delta = 1e-7, tol = 1e-4) {
   # Get the original operation function
   op_func <- get(op, envir = .GlobalEnv)
