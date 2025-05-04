@@ -109,6 +109,51 @@ back_c = function(adj_out, val, ...) {
   )
 }
 
+back_cbind = function(adj_out, val, ...) {
+  args = list(...)
+  lens = lapply(args, ncol)
+  # check that all inputs are matrices
+  stopifnot(!any(as.logical(lapply(lens,is.null))))
+  offs = c(0,cumsum(lens))
+  nrs = lapply(args, nrow)
+  for(i in 2 %upto% length(nrs)) {
+    if(!identical(nrs[[i]],nrs[[1]])) {
+      stop("Row count mismatch for cbind: ",
+        sv(i,nrs[[1]],nrs[[i]]))
+    }
+  }
+
+  # loop through args and subscript adj_out to get input adjoints
+  lapply(seq_along(args),
+    function(i) {
+      dim_like(adj_out[,(offs[i]+1) %upto% offs[i+1]],
+        args[[i]])
+    }
+  )
+}
+
+back_rbind = function(adj_out, val, ...) {
+  # following back_cbind
+
+  args = list(...)
+  lens = lapply(args, nrow)
+  stopifnot(!any(as.logical(lapply(lens,is.null))))
+  offs = c(0,cumsum(lens))
+  ncs = lapply(args, ncol)
+  for(i in 2 %upto% length(ncs)) {
+    if(!identical(ncs[[i]],ncs[[1]])) {
+      stop("Column count mismatch for rbind: ",
+        sv(i,ncs[[1]],ncs[[i]]))
+    }
+  }
+  lapply(seq_along(args),
+    function(i) {
+      dim_like(adj_out[(offs[i]+1) %upto% offs[i+1],],
+        args[[i]])
+    }
+  )
+}
+
 back_as.vector = function(adj_out, val, x) {
   # adj_out is a vector
   # x is a vector or array
@@ -145,6 +190,8 @@ basic_back_ops = list(
   "sum"=back_sum,
   "rep"=back_rep,
   "c"=back_c,
+  "cbind"=back_cbind,
+  "rbind"=back_rbind,
   "as.vector"=back_as.vector,
   "array"=back_array,
   "["=back_subscr

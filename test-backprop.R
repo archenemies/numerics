@@ -154,10 +154,45 @@ test_back_c = function() {
   tape_var(y = rand_array(c(6)))
   pv(dim(y))
   z = sum(y*dim_like(x,y))
-  export(r,x,y,z)
+  export(r,x,x0,x1,y,z)
 
   check_tape_grad_pert(r,z)
 }
+
+test_back_cbind = function() {
+  message("in test_back_cbind")
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(c(2,2)))
+  tape_var(x1 = rand_array(c(2,4)))
+  x = cbind(x0*rep_like(r, x0),x1*rep_like(r, x1))
+  pv(dim(x))
+  tape_var(y = rand_array(c(2,6)))
+  pv(dim(y))
+  z = sum(y*dim_like(x,y))
+  export(r,x,x0,x1,y,z)
+
+  check_tape_grad_pert(r,z)
+}
+
+test_back_rbind = function() {
+  message("in test_back_rbind")
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(c(5,3)))
+  tape_var(x1 = rand_array(c(4,3)))
+  x = rbind(x0*rep_like(r, x0),x1*rep_like(r, x1))
+  pv(dim(x))
+  tape_var(y = rand_array(c(9,3)))
+  pv(dim(y))
+  z = sum(y*dim_like(x,y))
+  export(r,x,x0,x1,y,z)
+
+  check_tape_grad_pert(r,z)
+}
+
 
 test_dim_check = function() {
   use_tape(new_tape())
@@ -192,5 +227,7 @@ if(mySourceLevel==0) {
 #  test_rep()
 #  test_rep_each()
 #  test_back_c()
-  test_dim_check()
+#  test_dim_check()
+#  test_back_cbind()
+  test_back_rbind()
 }

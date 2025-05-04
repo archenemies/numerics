@@ -230,9 +230,18 @@ rep.dual_number = function(x, ...) {
   dual_number(val, vd)
 }
 
+# TODO automate generation of these three methods (with dual_plus)
 dual_c = function(val, ...) {
   args = list(...)
   do.call(c, lapply(args, function(x) {x$dual}))
+}
+dual_cbind = function(val, ...) {
+  args = list(...)
+  do.call(cbind, lapply(args, function(x) {x$dual}))
+}
+dual_rbind = function(val, ...) {
+  args = list(...)
+  do.call(rbind, lapply(args, function(x) {x$dual}))
 }
 
 dual_array = function(val, data, dim) {
@@ -258,7 +267,9 @@ basic_dual_ops = list(
   "solve"=dual_solve,
   "exp"=dual_exp,
   "log"=dual_log,
-  "c"=dual_c
+  "c"=dual_c,
+  "rbind"=dual_rbind,
+  "cbind"=dual_cbind
 )
 # operations defined specially: sum, rowSums, colSums, etc.
 # because one or more arguments is not a dual_number
@@ -269,8 +280,7 @@ dual_ops = c(basic_dual_ops,
     "rowSums"=dual_rowSums,
     "colSums"=dual_colSums,
     "array"=dual_array,
-    "rep"=dual_rep,
-    "c"=dual_c
+    "rep"=dual_rep
   )
 )
 

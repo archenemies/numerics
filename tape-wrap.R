@@ -53,8 +53,10 @@ free_tape = function(tp=.tape) {
 show_tape = function(tp=.tape) {
   stopifnot(!is.null(tp))
   cat("Tape of length ",tp$length, "\n");
-  # just create a data frame with the tape data, and print it
-  ents = tp$buf
+  # just create a data frame with the raw tape data, and print it
+  # FHE 04 May 2025 had to add unclass after overriding
+  # rbind.tape_wrap
+  ents = lapply(tp$buf, unclass)
   df = as.data.frame(do.call(rbind,ents))
   # put ID column first
   ids = as.numeric(df$id)
@@ -136,7 +138,7 @@ untapewrap = function(tw) {stopifnot(is.tape_wrap(tw)); tw$value}
 
 # list of operators/functions to override
 basic_ops <- c("+", "*", "-", "/", "t", "%*%", "solve",
-  "exp", "log", "c"
+  "exp", "log", "c", "cbind", "rbind"
   )
 
 # operations with extra (non-wrapped) arguments are defined separately
@@ -149,9 +151,7 @@ sum.tape_wrap = function(x, na.rm=F) {
 rep.tape_wrap = function(x, ...) {
   tape_method_dispatch(rep, "rep", list(x), list(...))
 }
-c.tape_wrap = function(x, ...) {
-  tape_method_dispatch(c, "c", list(...), list())
-}
+
 array.tape_wrap = function(data, dim) {
   tape_method_dispatch(array, "array", list(data), list(dim=dim))
 }
