@@ -63,10 +63,14 @@ back_sum = function(adj_out, val, x, ...) {
   list(dim_like(rep(adj_out, length(x)), x))
 }
 
-# TODO note we don't handle 'each' yet, which may be necessary
-back_rep = function(adj_out, val, x, n) {
-  message("in back_rep");
-  pv(adj_out,val,x,n);
+# the last argument can be each=reps or times=reps; with no name it
+# defaults to times=reps
+back_rep = function(adj_out, val, x, ...) {
+  extra_args = list(...)
+  stopifnot(length(extra_args)==1)
+  each = F;
+  if(names(extra_args)=="each") each=T
+  reps=extra_args[[1]]
 
   # adj_out has the larger length
   # it (and val) is n times as long as x
@@ -77,12 +81,17 @@ back_rep = function(adj_out, val, x, n) {
 
   L = length(adj_out)
   l = length(x)
-  # XXX times and each
-  stopifnot(l*n == L)
-  # the last dimension changes most slowly
-  m = array(adj_out, dim=c(l,n))
-  # we sum the n repetitions over the l rows of m
-  v = rowSums(m)
+  stopifnot(l*reps == L)
+  if(each) {
+    # the last dimension changes most slowly
+    m = array(adj_out, dim=c(reps,l))
+    # we sum the n repetitions over the l columns of m
+    v = colSums(m)
+  } else {
+    m = array(adj_out, dim=c(l,reps))
+    # we sum the n repetitions over the l rows of m
+    v = rowSums(m)
+  }
   stopifnot(length(v)==l)
   list(dim_like(v,x))
 }
@@ -396,7 +405,6 @@ tape_get_grad = function(x,y,wrap=F) {
         stop("Undefined back_op for: ",ent$op)
       }
       # get the list of input adjoints from adj_out and the other arguments
-      pv(ent$op, ent$id)
       res = do.call(back_op, args)
       # res is a list with NULL for non-numeric args to op
       # now accumulate the input adjoints in accum

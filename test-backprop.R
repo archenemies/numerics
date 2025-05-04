@@ -122,9 +122,21 @@ test_rep = function() {
   tape_var(r = 1)
   tape_var(x0 = rand_array(3))
   x = rep_like(r, x0) * x0
-#  x = dim_like(rep(r, length(x0)),x0) * x0
-  tape_var(y = rand_array(6))
+  tape_var(y = rand_array(c(3,2)))
   z = sum(y*(rep_like(x, y)))
+  export(r,x,y,z)
+
+  check_tape_grad_pert(r,z)
+}
+
+test_rep_each = function() {
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(3))
+  x = rep_like(r, x0) * x0
+  tape_var(y = rand_array(c(2,3)))
+  z = sum(y*(rep_like(x, y, each=T)))
   export(r,x,y,z)
 
   check_tape_grad_pert(r,z)
@@ -143,4 +155,5 @@ if(mySourceLevel==0) {
 #  test_jvp()
 #   test_jvp_wrap()
   test_rep()
+  test_rep_each()
 }

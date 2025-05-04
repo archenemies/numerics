@@ -11,15 +11,20 @@ dim_like = function(v,x) {
 
 # repeat arg as many times as needed to make its dimensions the same
 # as model. we put arg first so we can be like 'rep'.
-# XXX sanity checks? (reps is prefix or suffix of model dims)
-# XXX each=F?
-rep_like = function(arg, model) {
+rep_like = function(arg, model, each=F, check=T) {
   L = length(model)
   l = length(arg)
   stopifnot((L %% l) == 0)
   reps = L/l
+  # l==1 for zeros_like
+  if(l>1 && check && !is.null(dim(model))) {
+    pv(dim(model), reps, L, l)
+    if(each) stopifnot(dim(model)[[1]]==reps)
+    else stopifnot(tail(dim(model),1)==reps)
+  }
   # rep is generic for tape_wrap etc.
-  res = rep(arg,times=reps)
+  if(each) res = rep(arg,each=reps)
+  else res = rep(arg,times=reps)
 
   dim_like(res,model)
 }
