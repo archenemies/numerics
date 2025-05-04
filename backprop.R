@@ -63,7 +63,7 @@ back_sum = function(adj_out, val, x, ...) {
   list(dim_like(rep(adj_out, length(x)), x))
 }
 
-# XXX note we don't handle 'each' yet, which may be necessary
+# TODO note we don't handle 'each' yet, which may be necessary
 back_rep = function(adj_out, val, x, n) {
   # adj_out has the larger length
   # it (and val) is n times as long as x
@@ -266,7 +266,7 @@ forward_traverse = function(x, y, xaux=NULL,
     stopifnot(identical(dim(x$value), dim(xaux)))
     l[[x$id]] = xaux;
   } else {
-    # used in cell_rerun_zero
+    # used with engine=cell_rerun_zero
     l = engine(x, l)
   }
 
@@ -295,7 +295,8 @@ tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
 
   if(!is.null(promote)) { pro = promote }
   else if(!wrap) { pro = untapewrap }
-  else { stopifnot(is.tape_wrap(xaux))
+  else { # wrap==T
+    stopifnot(is.tape_wrap(xaux))
     pro = identity;
   }
 
