@@ -1,9 +1,19 @@
+FHE 03 May 2025
+
+- nclg
+  - need version of tape_get_pert with multiple input and output variables
+    - this is just because we'll want the object value to see if it doesn't decrease
+    - need tape_get_dual_pert - or can we just do tape_get_pert with dual_number and promote=dual_number
+  - push_tape and local_tape
+  - track_logger
+
 FHE 28 Apr 2025
 
 - test loading of word vectors and similarity checking
   - still working on smaller version of the data
 - need vec_wrap class to compute loss gradient matrix for query heuristic
   - specialize constants and think about doing the same thing with has_dual in dual_number
+  - don't actually need vec_wrap if we compute squared loss derivative
 
 FHE 24 Apr 2025
 
