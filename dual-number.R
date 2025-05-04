@@ -224,9 +224,9 @@ dual_rep = function(val, x, ...) {
 }
 
 # replicate a dual_number
-rep.dual_number = function(x, n) {
-  val = rep(x$value, n)
-  vd = dual_rep(val, x, n)
+rep.dual_number = function(x, ...) {
+  val = rep(x$value, ...)
+  vd = dual_rep(val, x, ...)
   dual_number(val, vd)
 }
 
