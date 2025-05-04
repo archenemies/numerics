@@ -8,6 +8,10 @@
 # methods automatically perform vectorized operations over that
 # dimension.
 
+# NOTE: in R the last array dimension changes most slowly, so the
+# vector values for specific indices of the final dimension will be
+# contiguous.
+
 # usage:
 # vec_wrap(A)
 # vec_wrap_of(n)(A)
