@@ -116,6 +116,21 @@ test_jvp_wrap = function() {
   message("Passed test_jvp_wrap")
 }
 
+test_rep = function() {
+  use_tape(new_tape())
+
+  tape_var(r = 1)
+  tape_var(x0 = rand_array(3))
+  x = rep_like(r, x0) * x0
+#  x = dim_like(rep(r, length(x0)),x0) * x0
+  tape_var(y = rand_array(6))
+  z = sum(y*(rep_like(x, y)))
+  export(r,x,y,z)
+
+  check_tape_grad_pert(r,z)
+}
+
+
 mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
@@ -126,5 +141,6 @@ if(mySourceLevel==0) {
 #  test_check_back_ops()
 #  test_check_back_subscr()
 #  test_jvp()
-   test_jvp_wrap()
+#   test_jvp_wrap()
+  test_rep()
 }
