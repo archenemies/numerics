@@ -5,13 +5,13 @@ FHE 03 May 2025
   \- extend rep_like
   \- test_rep_each
 \- c()
-- cbind()?
+\- cbind()?
 - nclg
   - need version of tape_get_pert with multiple input and output variables
     - this is just because we'll want the object value to see if it doesn't decrease
     - need tape_get_dual_pert - or can we just do tape_get_pert with dual_number and promote=dual_number
     - just check !is.numeric && is.list?
-  - push_tape and local_tape
+  \- push_tape and local_tape
   - track_logger
 
 FHE 28 Apr 2025

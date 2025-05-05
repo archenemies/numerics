@@ -38,9 +38,6 @@ cg_step = function(x, d, hvp_fn) {
 # we need to create a new tape to evaluate the objective
 opt_nlcg = function(x0, d0=NULL, objective, max_steps=100, tol=1e-3, ...) {
   local_tape()
-# XXX above executes these in parent frame
-  push_tape(new_tape())
-  on.exit({pop_tape()})
 
   extra_args = list(...)
   tape_var(.x=x0)

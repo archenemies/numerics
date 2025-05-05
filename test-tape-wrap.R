@@ -77,3 +77,20 @@ test_tape2 = function() {
   show_tape(tp)
   free_tape(tp)
 }
+
+test_tape3 = function() {
+  fn = function() {
+    local_tape()
+    pv(.tape)
+    setup_tape4()
+    show_tape()
+  }
+  fn()
+  stopifnot(is.null(.tape))
+}
+
+if(mySourceLevel==0) {
+  mysource("test-tape-wrap.R")
+#  test_tape2()
+  test_tape3()
+}

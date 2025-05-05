@@ -4,6 +4,7 @@
 mysource("ops-common.R")
 
 .tape <- NULL
+.tape_stash <- list()
 
 # define the tape_wrap class
 tape_wrap <- function(value, op, inputs, repr=deparse(substitute(value)),
@@ -79,6 +80,27 @@ show_tape = function(tp=.tape) {
 use_tape <- function(tp) {
   .tape <<- tp
 }
+
+# FHE 04 May 2025 added local_tape for nlcg
+push_tape <- function(tp) {
+  .tape_stash <<- c(list(.tape), .tape_stash)
+  .tape <<- tp
+}
+pop_tape <- function() {
+  stopifnot(length(.tape_stash)>0)
+  # FHE 04 May 2025 .last_tape is so we can see the tape after a
+  # function exits, but it may cause memory leaks if we forget it's
+  # there
+  .last_tape <<- .tape
+  .tape <<- .tape_stash[[1]]
+  .tape_stash <<- tail(.tape_stash,1)
+}
+local_tape <- function() {
+  eval.parent({push_tape(new_tape())});
+  # https://stackoverflow.com/questions/8546262/add-on-exit-expr-to-parent-call
+  do.call(on.exit, list(quote(pop_tape())), envir=parent.frame());
+}
+
 stop_if_no_tape <- function() {
   if(!exists(".tape")) {
     stop("Shouldn't get here")
@@ -255,5 +277,6 @@ for (op in basic_ops) {
 
 if(mySourceLevel==0) {
   mysource("test-tape-wrap.R")
-  test_tape2()
+#  test_tape2()
+  test_tape3()
 }
