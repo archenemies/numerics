@@ -1,16 +1,12 @@
 FHE 03 May 2025
 
-\- somehow check dimensions in tape_wrap for * + - etc.
-\- 'each' in back_rep backprop.R
-  \- extend rep_like
-  \- test_rep_each
-\- c()
-\- cbind()?
 - nclg
-  - need version of tape_get_pert with multiple input and output variables
-    - this is just because we'll want the object value to see if it doesn't decrease
-    - need tape_get_dual_pert - or can we just do tape_get_pert with dual_number and promote=dual_number
-    - just check !is.numeric && is.list?
+  \- need version of tape_get_pert with multiple input and output variables
+    \- this is just because we'll want the object value to see if it doesn't decrease
+    \- just check !is.numeric && is.list? -> is_just_list
+    \- promote singular xs and ys to list in tape_get_*
+      \- (but y stays y in tape_get_grad)
+    - also need tape_get_dual_pert - or can we just do tape_get_pert with dual_number and promote=dual_number
   \- push_tape and local_tape
   - track_logger
 

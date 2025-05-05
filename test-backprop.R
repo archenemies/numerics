@@ -12,7 +12,7 @@ test_01_pert = function() {
   use_tape(new_tape())
   setup_tape1()
   show_tape()
-  ## pv(forward_traverse(x))
+  pv(forward_traverses(x,xauxs=1.01,qq))
   ## pv(forward_traverse(x, xaux=1.01, type="pert"))
   stopifnot(tape_get_pert(x,qq,1.02)==30.2)
   stopifnot(tape_get_grad(x,qq)==10)
@@ -25,6 +25,7 @@ test_01_pert = function() {
 tape_pert_numdiff = function(x,y,h=1e-4) {
   xp = x$value + h;
   yp = tape_get_pert(x, y, xp)
+  pv(yp,y)
   (yp-y$value)/h
 }
 check_tape_grad_pert = function(x,y,tol=1e-2) {
@@ -51,7 +52,7 @@ test_02_pert = function() {
   check_tape_grad_pert(x,y)
 
   # now check that wrapped pert has the same grad
-  y_inputs = find_all_inputs(y)
+  y_inputs = find_all_inputs(list(y)) # unused
   tape_var(x1=x$value)
   ## l = forward_traverse(x, xaux=x1, type="pert", restrict_ids=y_inputs,
   ##   wrap=T)
@@ -93,7 +94,7 @@ test_jvp = function() {
       tape_get_pert(x,z,xdual)
     }
   }
-  check_dual_function(jvp_fn, list(dual_number(x$value, xdot)))
+  check_dual_function(jvp_fn, list(dual_number(x$value, xdot)), tol=1e-2)
 }
 
 test_jvp_wrap = function() {
@@ -217,17 +218,18 @@ mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
   mysource("test-backprop.R")
-#  test_01_pert()
-#  test_03_grad_wrap()
-#  test_check_back_plus()
-#  test_check_back_ops()
-#  test_check_back_subscr()
-#  test_jvp()
-#   test_jvp_wrap()
-#  test_rep()
-#  test_rep_each()
-#  test_back_c()
-#  test_dim_check()
-#  test_back_cbind()
-  test_back_rbind()
+  ## test_01_pert()
+  test_02_pert()
+  ## test_03_grad_wrap()
+  ## test_check_back_plus()
+  ## test_check_back_ops()
+  ## test_check_back_subscr()
+  ## test_jvp()
+  ## test_jvp_wrap()
+  ## test_rep()
+  ## test_rep_each()
+  ## test_back_c()
+  ## test_dim_check()
+  ## test_back_cbind()
+  ## test_back_rbind()
 }

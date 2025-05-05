@@ -47,7 +47,8 @@ check_back_op = function(op="+", tol=1e-3) {
     args = list(...)
 
     make_arg_cells = function(val) {
-      tape_var(x = 1)
+      # FHE 05 May 2025 this was 1, but that broke log()
+      tape_var(x = 0)
       x0 = tape_var(val)
       x1 = tape_var(rand_array(dim(val)))
       xc = x0 + rep_like(x, x1)*x1
@@ -76,6 +77,7 @@ check_back_op = function(op="+", tol=1e-3) {
 test_check_back_ops = function(dim=3) {
   x = rand_array(dim)
   y = rand_array(dim)
+  export(x,y)
   check_back_op("+")(x,y)
   check_back_op("*")(x,y)
   check_back_op("-")(x,y)

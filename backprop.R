@@ -200,9 +200,10 @@ back_ops = basic_back_ops
 
 #----------------------------------------------------------------
 
-find_all_inputs = function(y) {
+find_all_inputs = function(ys) {
   inputs = integer(0)
-  new_inputs = y$id
+  new_inputs = sapply(ys, function(y) {y$id});
+  new_inputs = sort(decreasing=TRUE, new_inputs)
   while(length(new_inputs)>0) {
     next_iid = new_inputs[1]
     inputs = c(inputs, next_iid)
@@ -220,7 +221,7 @@ list_exists = function(l,id) {
   return(!is.null(l[[id]]))
 }
 
-cell_rerun_zero = function(ent, l, wrap) {
+cell_rerun_zero = function(ent, l, wrap=F) {
   # the simplest traversal operation, just initialize all the
   # accumulators for dependents of x. in case wrap==T, we don't
   # actually depend on the original tape cell ent, so we create a
@@ -300,6 +301,10 @@ cell_rerun_dual = function(ent, l, wrap=F) {
   l
 }
 
+is_just_list = function(l) {
+  !is.numeric(l) && is.list(l)
+}
+
 # thoughts. for the purpose of perturbing the inputs, or for
 # propagating a dual number, we need a function that can traverse the
 # tape and update the values depending on x into a separate list. we
@@ -308,39 +313,52 @@ cell_rerun_dual = function(ent, l, wrap=F) {
 # the accumulators. start with the accumulator version and keep it
 # general.
 
-# forward_traverse(x)
-# x: the tape_var whose descendents we're interested in
-# type: the type of traversal we want
-#   - accum: return a list of zero'ed accumulators for grad
-#   - pert: recompute parts of the computation
-# xaux: auxiliary value for "pert" and "dual" types
-# restrict_ids: restrict our attention to these tape cells (typically,
-#   ancestors of an objective)
-forward_traverse = function(x, y, xaux=NULL,
+# forward_traverses
+# xs: the tape_var (or list of tape_vars) whose descendents we're interested in
+# ys: the final descendents we are traversing to
+# xauxs: auxiliary values for xs, for e.g. tape_get_pert or tape_get_dual
+# engine: function that adds cells to the fixup list during traversal
+forward_traverses = function(xs, ys, xauxs=NULL,
   engine=cell_rerun_zero) {
-
   stop_if_no_tape()
+
+  if(!is.null(xauxs) && !is_just_list(xauxs)) xauxs=list(xauxs)
+  if(!is_just_list(xs)) xs=list(xs)
+  if(!is_just_list(ys)) ys=list(ys)
+
   n = .tape$length
   l = list()
 
-  y_inputs = find_all_inputs(y)
-  if(!x$id %in% y_inputs) {
-    stop("tape_get_grad: y not a descendent of x")
-  }
+  y_inputs = find_all_inputs(ys)
+  lapply(seq_along(xs), function(i) {
+    x=xs[[i]]
+    if(!identical(x,.tape$get(x$id))) {
+      # using a different tape?
+      stop("input ",i," doesn't match tape")
+    }
+    if(!x$id %in% y_inputs) {
+      stop("no output is a descendent of input ",i)
+    }
+  })
   restrict_ids = y_inputs
   # sort ascending
   restrict_ids = sort(restrict_ids)
 
   have_cell_id = function(id) { list_exists(l,id) }
 
-  stopifnot(identical(x,.tape$get(x$id)))
-
-  if(!is.null(xaux)) {
-    stopifnot(identical(dim(x$value), dim(xaux)))
-    l[[x$id]] = xaux;
+  if(!is.null(xauxs)) {
+    stopifnot(length(xs)==length(xauxs))
+    lapply(seq_along(xs), function(i) {
+      x = xs[[i]]
+      xaux = xauxs[[i]]
+      stopifnot(identical(dim(x$value), dim(xaux)))
+      l[[x$id]] <<- xaux
+    })
   } else {
     # used with engine=cell_rerun_zero
-    l = engine(x, l)
+    for(x in xs) {
+      l = engine(x, l)
+    }
   }
 
   # execute the computation
@@ -362,21 +380,36 @@ forward_traverse = function(x, y, xaux=NULL,
 #   tape_wrap'ped output
 # promote: optional function to promote tape objects, e.g.
 #   dual_number, before they are combined with xaux's descendants
-tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
+tape_get_pert = function(xs, ys, xauxs, wrap=F, promote=NULL) {
   stop_if_no_tape()
   # call forward_traverse
+
+  # allow users to call with xs or ys as a single variable
+  if(!is_just_list(xauxs)) xauxs=list(xauxs)
+  if(!is_just_list(xs)) xs=list(xs)
+  singleton_output=F
+  if(!is_just_list(ys)) {
+    ys=list(ys)
+    singleton_output=T
+  }
+
+  stopifnot(length(xs)==length(xauxs))
 
   if(!is.null(promote)) { pro = promote }
   else if(!wrap) { pro = untapewrap }
   else { # wrap==T
-    stopifnot(is.tape_wrap(xaux))
+    # FHE 05 May 2025 apparently only test_02_pert gets here
+    stopifnot(all(sapply(xauxs,is.tape_wrap)))
     pro = identity;
   }
 
-  l = forward_traverse(x, y, xaux=xaux,
+  l = forward_traverses(xs, ys, xauxs=xauxs,
     engine=Curry(cell_rerun_pert, promote=pro)
   )
-  l[[y$id]]
+  # output: collect the l entries for each y in ys
+  res = lapply(ys, function(y) { l[[y$id]] })
+  if(singleton_output) res[[1]]
+  else res
 }
 
 # calculate JVP
@@ -386,22 +419,41 @@ tape_get_pert = function(x, y, xaux, wrap=F, promote=NULL) {
 # xdot is the new dual component of x
 # if wrap=T then xdot should be a tape_wrap
 tape_get_dual =
-tape_get_jvp = function(x, y, xdot, wrap=F) {
+tape_get_jvp = function(xs, ys, xdots, wrap=F) {
   # adapted from tape_get_pert
   stop_if_no_tape()
-  # call forward_traverse
 
-  if(!wrap) {
-    xaux = dual_number(x$value, xdot)
-  } else {
-    stopifnot(is.tape_wrap(xdot))
-    xaux = dual_number(x, xdot)
+  # allow users to call with xs or ys as a single variable
+  if(!is_just_list(xdots)) xdots=list(xdots)
+  if(!is_just_list(xs)) xs=list(xs)
+  singleton_output=F
+  if(!is_just_list(ys)) {
+    ys=list(ys)
+    singleton_output=T
   }
 
-  l = forward_traverse(x, y, xaux=xaux,
+  # call forward_traverse
+  if(!wrap) {
+    xauxs = lapply(seq_along(xs),
+      function(i) {
+        dual_number(xs[[i]]$value, xdots[[i]])
+      })
+    ## xaux = dual_number(x$value, xdot)
+  } else {
+    xauxs = lapply(seq_along(xs),
+      function(i) {
+        stopifnot(is.tape_wrap(xdots[[i]]))
+        dual_number(xs[[i]], xdots[[i]])
+      })
+    ## xaux = dual_number(x, xdot)
+  }
+
+  l = forward_traverses(xs, ys, xauxs=xauxs,
     engine=Curry(cell_rerun_dual, wrap=wrap)
   )
-  l[[y$id]]$dual
+  res = lapply(ys, function(y) { l[[y$id]]$dual })
+  if(singleton_output) res[[1]]
+  else res
 }
 
 # ----------------------------------------------------------------
@@ -425,12 +477,18 @@ tape_get_jvp = function(x, y, xdot, wrap=F) {
 # would use it
 
 # arguments: wrap, if true then record the gradient calculation on the tape
-tape_get_grad = function(x,y,wrap=F) {
+tape_get_grad = function(xs,y,wrap=F) {
   stop_if_no_tape()
   stopifnot(length(y$value)==1)
 
+  singleton_input=F
+  if(!is_just_list(xs)) {
+    xs=list(xs)
+    singleton_input=T
+  }
+
   # call forward_traverse
-  accums = forward_traverse(x, y,
+  accums = forward_traverses(xs, list(y),
     engine=Curry(cell_rerun_zero,wrap=wrap))
   if(!list_exists(accums,y$id)) {
     stop("Didn't find y in accumulator list")
@@ -490,16 +548,14 @@ tape_get_grad = function(x,y,wrap=F) {
         union(inputs, new_inputs))
     }
   }
-  accums[[x$id]]
+  # accums[[x$id]]
+  res = lapply(xs, function(x) { accums[[x$id]] })
+  if(singleton_input) res[[1]]
+  else res
 }
+
 # ----------------------------------------------------------------
-
-# TODO:
-
-# - functions for JVP and HVP
-# - more operations
-
-# Note: to do hvp (hessian-vector product):
+# (OLDish) Note: to do hvp (hessian-vector product):
 #   - we must run the computation over again with a dual number input
 #     - we can re-use the tape but only if there is special recognition for dual_number datatype
 #     - grad_dual(x,y) where x is a dual number (or list of them)
