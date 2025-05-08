@@ -33,9 +33,9 @@ print.dual_number = function(x) {
   print(x$dual)
 }
 
-deparse.dual_number = function(dn) {
-  paste0("dual_number(",deparse(dn$value),
-    ",",deparse(dn$dual),")")
+deparse.dual_number = function(dn,...) {
+  paste0("dual_number(",deparse1(dn$value),
+    ",",deparse1(dn$dual),")")
 }
 
 collapse_dual = function(x, delta) {
