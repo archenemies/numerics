@@ -29,6 +29,7 @@ test_nest1 = function() {
 
 # tape_wrap within dual_number
 test_nest2 = function() {
+  use_tape(new_tape())
   tape_var(tv_primal = rand_array(10),
     tv_dual = rand_array(10))
   xtvd = dual_number(tv_primal, tv_dual)
