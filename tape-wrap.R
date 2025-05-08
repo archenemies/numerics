@@ -147,10 +147,11 @@ print.tape_wrap <- function(x) {
 # this will only do anything if we also source
 # mysource("generic-deparse.R")
 deparse.tape_wrap = function(tw) {
-  paste0("tape_wrap(",deparse(tw$value),
-    ",",deparse(tw$op),
-    ",",deparse(tw$inputs),
-    ",repr=",deparse(tw$repr),")")
+  # FHE 07 May 2025 use deparse1, otherwise recycling occurs
+  paste0("tape_wrap(",deparse1(tw$value),
+    ",",deparse1(tw$op),
+    ",",deparse1(tw$inputs),
+    ",repr=",deparse1(tw$repr),")")
 }
 
 untapewrap = function(tw) {stopifnot(is.tape_wrap(tw)); tw$value}
