@@ -63,6 +63,14 @@ back_sum = function(adj_out, val, x, ...) {
   list(dim_like(rep(adj_out, length(x)), x))
 }
 
+back_cumsum = function(adj_out, val, x) {
+  stopifnot(length(adj_out)==length(x))
+  stopifnot(length(val)==length(x))
+  list(dim_like(
+    rev(cumsum(rev(adj_out)))
+  , x))
+}
+
 # the last argument can be each=reps or times=reps; with no name it
 # defaults to times=reps
 back_rep = function(adj_out, val, x, ...) {
@@ -188,6 +196,7 @@ basic_back_ops = list(
   "log"=back_log,
 
   "sum"=back_sum,
+  "cumsum"=back_cumsum,
   "rep"=back_rep,
   "c"=back_c,
   "cbind"=back_cbind,

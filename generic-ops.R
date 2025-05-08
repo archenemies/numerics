@@ -18,7 +18,7 @@ convertToGeneric <- function(fname) {
 }
 
 funs <- list("rowSums", "colSums", "sum", "exp", "log",
-  "array")
+  "array", "cumsum")
 
 # the following already seem to be generic: "rep", "as.vector", "length"
 

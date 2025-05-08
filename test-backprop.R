@@ -214,12 +214,18 @@ test_dim_check = function() {
   message("passed")
 }
 
+test_cumsum = function(dim=10) {
+  x = rand_array(dim)
+  export(x)
+  check_back_op("cumsum")(x)
+}
+
 mysource("check-back-ops.R")
 
 if(mySourceLevel==0) {
   mysource("test-backprop.R")
   ## test_01_pert()
-  test_02_pert()
+  ## test_02_pert()
   ## test_03_grad_wrap()
   ## test_check_back_plus()
   ## test_check_back_ops()
@@ -232,4 +238,5 @@ if(mySourceLevel==0) {
   ## test_dim_check()
   ## test_back_cbind()
   ## test_back_rbind()
+  test_cumsum()
 }

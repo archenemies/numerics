@@ -218,6 +218,10 @@ sum.dual_number = function(x, na.rm=F) {
   dual_number(val,vd)
 }
 
+dual_cumsum = function(val, x) {
+  cumsum(x$dual)
+}
+
 # use ... so we can have n= or each=
 dual_rep = function(val, x, ...) {
   rep(x$dual, ...)
@@ -269,7 +273,8 @@ basic_dual_ops = list(
   "log"=dual_log,
   "c"=dual_c,
   "rbind"=dual_rbind,
-  "cbind"=dual_cbind
+  "cbind"=dual_cbind,
+  "cumsum"=dual_cumsum
 )
 # operations defined specially: sum, rowSums, colSums, etc.
 # because one or more arguments is not a dual_number

@@ -62,7 +62,9 @@ check_back_op = function(op="+", tol=1e-3) {
 
     zc = do.call(op_func, op_args)
 
-    zo = tape_var(rand_array(dim(zc)))
+    # FHE 07 May 2025 had to switch to rand_like here for testing
+    # cumsum since it returns NULL dim
+    zo = tape_var(rand_like(zc))
     z = sum(zc*zo)
 
 #    show_tape()
@@ -85,5 +87,6 @@ test_check_back_ops = function(dim=3) {
   check_back_op("/")(x,y)
   check_back_op("exp")(x)
   check_back_op("log")(abs(x))
+  check_back_op("cumsum")(x)
 }
 
