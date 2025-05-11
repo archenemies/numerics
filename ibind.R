@@ -1,12 +1,77 @@
 # FHE 11 May 2025
 # with help from ChatGPT
 
+# Helpers:
+# ----------------------------------------------------------------
+# Need a special class to hold the dimension index so that objects
+# print nicely.
+
+# Add class "ibound" to objects from ibind
+as.ibound = function(x) {
+  class(x) = c("ibound", class(x))
+  x
+}
+
+# Print method for ibound class
+print.ibound = function(x, ...) {
+  # Temporarily hide dimindices
+  dix = dimindices(x)
+  dimindices(x) = NULL
+  NextMethod()
+  cat(sprintf("<dimindices: %d dimensions with %d named indices>\n",
+    length(dix),
+    sum(sapply(dix, is.null))
+  ))
+}
+# ----------------------------------------------------------------
+
+# XXX should we have rowindices, colindices, indices?
+
+dimindices = function(obj) {
+  attr(obj, "dimindices")
+}
+`dimindices<-` = function(obj, ..., value) {
+  attr(obj, "dimindices") = value
+  if(is.null(value)) {
+    obj
+  } else {
+    as.ibound(obj)
+  }
+}
+
+# ----------------------------------------------------------------
+# Main functions:
+
+# iprep "prepare index"
+# Sets "dimindices" attribute from dimnames()
+iprep = function(obj) {
+  if(is.null(dimindices(obj))) {
+    dn = dimnames(obj)
+    d = dim(obj)
+    indices = vector("list", length(d))
+    for (i in seq_along(d)) {
+      if (!is.null(dn[[i]])) {
+        indices[[i]] = setNames(as.list(seq_len(d[[i]])), dn[[i]])
+      } else {
+        indices[i] = list(NULL)
+      }
+    }
+    dimindices(obj) = indices
+  }
+  obj
+}
+
+# XXX done up to here
+
 # ibind "index bind"
 # Combine several indexed named objects into an indexed named object
 # Requires inputs to be indexed
 # u = ibind(dim=1, a=v, b=abs(v))
 # - the argument objects should have all dimensions equal except for
 # the binding dimension (and dimnames equal, if set)
+#   - if is.null(dim) then expect all input dim()s to be NULL
+#   - otherwise we'd have no way to extract a proper object using subscripts
+#   - if we end up putting a matrix in the parameters, we have to flatten and unflatten it
 # - sets "dimindices" attribute in addition to "dimnames"
 # - dimindices(u) is a list of lists, analogous to dimnames
 #   - the outer list is the same length as dim(u)
@@ -16,6 +81,8 @@
 # - if v is not named, then u will have names like "a$1", "a$2", "b$1", etc. These numerical names don't have to be in the index for u, since the user could just call ifetch(u, "a")[[2]] instead of ifetch(u, "a$2").
 # - we require all ... arguments to be named
 ibind = function(dim=NULL, ...) {
+  # XXX proofread me
+  
   args = list(...)
   if (is.null(dim)) stop("dimension must be specified")
   if (is.null(names(args)) || any(names(args) == "")) stop("all arguments must be named")
@@ -25,6 +92,7 @@ ibind = function(dim=NULL, ...) {
   ref_dims = dim(args[[1]])
   n_dims = length(ref_dims)
   if (dim > n_dims) stop("specified dim exceeds number of dimensions")
+
 
   for (a in args) {
     da = dim(a)
@@ -101,26 +169,10 @@ ibind = function(dim=NULL, ...) {
       indices[[d]] = attr(first, "dimindices")[[d]]
     }
   }
-  attr(out, "dimindices") = indices
+  dimindices(out) = indices
   out
 }
 
-# iprep "prepare index"
-# Sets "dimindices" attribute from dimnames()
-iprep = function(obj) {
-  dn = dimnames(obj)
-  d = dim(obj)
-  indices = vector("list", length(d))
-  for (i in seq_along(d)) {
-    if (!is.null(dn[[i]])) {
-      indices[[i]] = setNames(as.list(seq_len(d[[i]])), dn[[i]])
-    } else {
-      indices[[i]] = NULL
-    }
-  }
-  attr(obj, "dimindices") = indices
-  obj
-}
 
 # ifetch(u, "a", dim=1)
 # ifetch(u, "b$x")
