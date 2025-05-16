@@ -1,0 +1,241 @@
+# FHE 12 May 2025
+# changes to request for ibind.R
+
+Below is an R program, ibind.R, that I wrote with help from an AI assistant. Most of the comments, including all those with dashes, are mine, and served as the prompt for producing the code, which is correct as far as I have checked it.
+
+I am hoping to use something like this to work more conveniently with blocks of elements in a vector or array. Unfortunately the data structures in the current ibind.R (stored in the "dimindices" object attribute) don't hold enough information to allow subscripting to return objects with the same names and subblocks as the objects that were passed to ibind(). I want you to fix this by removing "dimindices" and introducing a "dimblocks" attribute for bbound objects, which stores slightly more information.
+
+Here is a summary of the changes I want to see:
+
+- rename the file to bbind.R
+- change names. ibind etc. becomes bbind, bbound, bprep, bfetch, dimblocks, etc. ("block")
+- a "block" is a named, contiguous set of indices of an R array (or vector or matrix). An object can have multiple non-overlapping blocks for each dimension.
+- an object of class "bbound" has a "dimblocks" attribute that is a list (per dim) of block lists, like:
+  list(a=list(ixs=indices of block a, names=..., subblocks=...), b=list(ixs=indices of block b, ...))
+  where subblocks is a list of the same type as blocks, and may be NULL
+  if names is NULL
+- define methods for subscripting, i.e. [ and [<-
+- when we subscript a bbound object, use the stored subblocks to return a bbound instance correctly with original names and blocks
+- if we subscript on a path string "a$x" then this should use subblocks to return the sub-object a$x in one step.
+- bfetch, the helper for [, should parse these strings and return the sub-block data for a given path and dimension number. The dollar sign "$" is not a valid character for block names, and bfetch should split each block name on "$" to get the path components in the block tree.
+- the subscript method [ should use the subblocks returned by bfetch to index, extract and decorate the requested objects.
+
+Here is an example usage with the new syntax:
+
+    v1 = array(1:3, dim=c(3,1))
+    dimnames(v1) = list(c("x", "y", "z"), NULL)
+    v1 = bprep(v1)
+
+    v2 = array(4:6, dim=c(3,1))
+    dimnames(v2) = list(c("u", "v", "w"), NULL)
+    v2 = bprep(v2)
+
+    u = bbind(dim=2, a=v1, b=v2) # error, names don't match in dimension 1
+
+    u = bbind(dim=1, a=v1, b=v2) # produces array of dim c(6,1)
+    bfetch(u, "a", dim=1) # block data for v1
+    bfetch(u, "a$x", dim=1) # block data for v1[1]
+    u["a",] # returns an object identical to v1
+    u["b$v",] # returns 5
+    dimnames(u)[[1]] # returns c("a$x", "a$y", "a$z", "b$u", "b$v", "b$w")
+
+Try to understand the new data structures and how they can be used to recover the inputs to a "bbind" call from its output, with correct dimnames and dimblocks attributes.
+
+If you are aware of a similar tool that already exists in R, then feel free to mention it, but please make your code output as free from external package dependencies as possible.
+
+Please preserve the original file structure as much as possible (but with new comments, since the current comments will no longer describe the code), so that I can compare your output with other solutions.
+
+Here is the code that I want to modify to use the new syntax and data structures:
+
+    # Helpers:
+    # ----------------------------------------------------------------
+    # Need a special class to hold the dimension index so that objects
+    # print nicely.
+
+    # Add class "ibound" to objects from ibind
+    as.ibound = function(x) {
+      class(x) = c("ibound", class(x))
+      x
+    }
+
+    # Print method for ibound class
+    print.ibound = function(x, ...) {
+      # Temporarily hide dimindices
+      dix = dimindices(x)
+      dimindices(x) = NULL
+      NextMethod()
+      cat(sprintf("<dimindices: %d dimensions with %d named indices>\n",
+        length(dix),
+        sum(sapply(dix, is.null))
+      ))
+    }
+    # ----------------------------------------------------------------
+
+    # XXX should we define rowindices(), colindices(), indices()?
+
+    dimindices = function(obj) {
+      attr(obj, "dimindices")
+    }
+    `dimindices<-` = function(obj, ..., value) {
+      attr(obj, "dimindices") = value
+      if(is.null(value)) {
+        obj
+      } else {
+        as.ibound(obj)
+      }
+    }
+
+    # ----------------------------------------------------------------
+    # Main functions:
+
+    # iprep "prepare index"
+    # Sets "dimindices" attribute from dimnames()
+    iprep = function(obj) {
+      if(is.null(dimindices(obj))) {
+        dn = dimnames(obj)
+        d = dim(obj)
+        indices = vector("list", length(d))
+        for (i in seq_along(d)) {
+          if (!is.null(dn[[i]])) {
+            indices[[i]] = setNames(as.list(seq_len(d[[i]])), dn[[i]])
+          } else {
+            indices[i] = list(NULL)
+          }
+        }
+        dimindices(obj) = indices
+      }
+      obj
+    }
+
+    # XXX done reading up to here
+
+    # ibind "index bind"
+    # Combine several indexed named objects into an indexed named object
+    # Requires inputs to be indexed
+    # u = ibind(dim=1, a=v, b=abs(v))
+    # - the argument objects should have all dimensions equal except for
+    # the binding dimension (and dimnames equal, if set)
+    #   - if is.null(dim) then expect all input dim()s to be NULL
+    #   - otherwise we'd have no way to extract a proper object using subscripts
+    #   - if we end up putting a matrix in the parameters, we have to flatten and unflatten it
+    # - sets "dimindices" attribute in addition to "dimnames"
+    # - dimindices(u) is a list of lists, analogous to dimnames
+    #   - the outer list is the same length as dim(u)
+    #   - each inner list, if not NULL, maps character index keys to integer index vectors
+    # - ibind uses (and requires) "dimindices" attributes in arguments, where names exist
+    # - for example if v has an element name "x" then it will be named "a$x" in the output, dimindices(u)[[1]][["a"]] will be 1 %upto% length(v), dimindices(u)[[1]][["a$x"]] will be the same as dimindices(v)[[1]][["x"]], a single integer indexing the "x" element of v; dimindices(u)[[1]][["b"]] will be (length(v)+1) %upto% (length(v)+length(v)), and so on.
+    # - if v is not named, then u will have names like "a$1", "a$2", "b$1", etc. These numerical names don't have to be in the index for u, since the user could just call ifetch(u, "a")[[2]] instead of ifetch(u, "a$2").
+    # - we require all ... arguments to be named
+    ibind = function(dim=NULL, ...) {
+      # XXX proofread me
+
+      args = list(...)
+      if (is.null(dim)) stop("dimension must be specified")
+      if (is.null(names(args)) || any(names(args) == "")) stop("all arguments must be named")
+
+      args = lapply(args, iprep)
+
+      ref_dims = dim(args[[1]])
+      n_dims = length(ref_dims)
+      if (dim > n_dims) stop("specified dim exceeds number of dimensions")
+
+
+      for (a in args) {
+        da = dim(a)
+        if (length(da) != n_dims) stop("all arguments must have same number of dimensions")
+        if (!all(da[-dim] == ref_dims[-dim])) stop("non-binding dimensions must match")
+      }
+
+      # calculate final dimension sizes
+      bind_sizes = sapply(args, function(x) dim(x)[dim])
+      out_dims = ref_dims
+      out_dims[dim] = sum(bind_sizes)
+
+      # allocate result
+      first = args[[1]]
+      out = array(NA, dim=out_dims)
+      storage.mode(out) = storage.mode(first)
+
+      # fill result
+      start = 1
+      for (i in seq_along(args)) {
+        a = args[[i]]
+        len = dim(a)[dim]
+        end = start + len - 1
+        idx = vector("list", n_dims)
+        for (j in seq_len(n_dims)) {
+          if (j == dim) {
+            idx[[j]] = start:end
+          } else {
+            idx[[j]] = seq_len(dim(a)[j])
+          }
+        }
+        out_idx = idx
+        out_idx[[dim]] = start:end
+        out = do.call(`[<-`, c(list(out), out_idx, list(value=a)))
+        start = end + 1
+      }
+
+      # handle dimnames
+      dnames = vector("list", n_dims)
+      if (!is.null(dimnames(first))) {
+        for (d in seq_len(n_dims)) {
+          if (d == dim) {
+            dnames[[d]] = unlist(Map(function(name, x) {
+              dn = dimnames(x)[[d]]
+              if (is.null(dn)) paste0(name, "$", seq_len(dim(x)[d]))
+              else paste0(name, "$", dn)
+            }, names(args), args), use.names=FALSE)
+          } else {
+            dnames[[d]] = dimnames(first)[[d]]
+          }
+        }
+      }
+      dimnames(out) = dnames
+
+      # dimindices
+      indices = vector("list", n_dims)
+      for (d in seq_len(n_dims)) {
+        if (d == dim) {
+          indices[[d]] = list()
+          start = 1
+          for (nm in names(args)) {
+            obj = args[[nm]]
+            len = dim(obj)[d]
+            indices[[d]][[nm]] = start %upto% (start + len - 1)
+            obj_indices = attr(obj, "dimindices")[[d]]
+            if (!is.null(obj_indices)) {
+              for (subnm in names(obj_indices)) {
+                indices[[d]][[paste0(nm, "$", subnm)]] = start - 1 + obj_indices[[subnm]]
+              }
+            }
+            start = start + len
+          }
+        } else {
+          indices[[d]] = attr(first, "dimindices")[[d]]
+        }
+      }
+      dimindices(out) = indices
+      out
+    }
+
+
+    # ifetch(u, "a", dim=1)
+    # ifetch(u, "b$x")
+    # Subscript the given object with the named indices along the specified dimension.
+    # Error if named indices don't exist.
+    ifetch = function(obj, ixkey, dim=NULL) {
+      indices = attr(obj, "dimindices")
+      if (is.null(dim)) {
+        found = which(sapply(indices, function(idx) !is.null(idx) && ixkey %in% names(idx)))
+        if (length(found) != 1) stop("ambiguous or missing dimension for index key")
+        dim = found
+      }
+      if (is.null(indices[[dim]])) stop("no indices found for dimension ", dim)
+      ix = indices[[dim]][[ixkey]]
+      if (is.null(ix)) stop("index key not found: ", ixkey)
+      idx = vector("list", length(dim(obj)))
+      for (i in seq_along(idx)) idx[[i]] = seq_len(dim(obj)[i])
+      idx[[dim]] = ix
+      do.call(`[`, c(list(obj), idx, drop=FALSE))
+    }
