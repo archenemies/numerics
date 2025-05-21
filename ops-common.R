@@ -70,3 +70,16 @@ subscr_assign = function(x, value, ...) {
 if(0) {
   pv(rep_like(2, array(1:24, dim=4:2)))
 }
+
+# FHE 21 May 2025 (written with help from Grok)
+# helper for subscripting in bbound
+# not sure if this would work with pqR
+# it depends on sys.call() returning empty names for the missing
+# arguments
+missing_to_NA <- function(...) {
+  args = as.list(substitute(list(...))[-1])
+  lapply(args, function(arg) {
+    if (arg == quote(expr = )) NA else eval(arg)
+  })
+}
+
