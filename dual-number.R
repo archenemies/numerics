@@ -183,7 +183,7 @@ dual_subscr = function(val, x, ...) {
 dual_subscr_assign = function(x, value, ...) {
   x$value[...] = value$value
   x$dual[...] = value$dual
-  x
+  invisible(x)
 }
 
 `[<-.dual_number` = function(x, ..., value) {
