@@ -1,4 +1,4 @@
-source("bbind.R")
+#source("bbind.R")
 
 cat("Running bbound unit tests...\n")
 
@@ -10,7 +10,7 @@ v1 = bprep(v1)
 stopifnot(inherits(v1, "bbound"))
 stopifnot(!is.null(dimblocks(v1)))
 stopifnot(length(dimblocks(v1)[[1]]) == 3)
-stopifnot(identical(dimblocks(v1)[[1]]$x$ixs, 1))
+stopifnot(identical(dimblocks(v1)[[1]]$x$ixs, 1L))
 
 # Test 2: bbind basic two-block bind
 v2 = array(4:6, dim = c(3,1))

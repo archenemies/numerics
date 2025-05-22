@@ -6,6 +6,11 @@ as.bbound = function(x) {
   x
 }
 
+un_bbound = function(x) {
+  class(x) = setdiff(class(x), "bbound")
+  x
+}
+
 # Print method for bbound class
 print.bbound = function(x, ...) {
   dbx = dimblocks(x)
@@ -40,7 +45,7 @@ bprep = function(obj) {
           list(ixs = j, names = dn[[i]][j], subblocks = NULL)
         }), dn[[i]])
       } else {
-        blocks[[i]] = NULL
+        blocks[i] = list(NULL)
       }
     }
     dimblocks(obj) = blocks
@@ -123,7 +128,8 @@ bbind = function(dim = NULL, ...) {
 
 # bfetch: fetch a block path from the block tree
 bfetch = function(obj, path, dim) {
-  parts = strsplit(path, "\\$", fixed = FALSE)[[1]]
+  pv(obj,path,dim)
+  parts = strsplit(path, "$", fixed = TRUE)[[1]]
   blocks = dimblocks(obj)[[dim]]
   for (p in parts) {
     if (is.null(blocks[[p]])) stop("Block not found: ", p)
@@ -134,30 +140,36 @@ bfetch = function(obj, path, dim) {
 }
 
 # [ method for bbound
-`[.bbound` = function(x, i, j, ..., drop = TRUE) {
-  subs = list(i, j, ...)
+`[.bbound` = function(x, ...) {
+  subs = substitute(list(...))
+  pv(subs)
   dn = dim(x)
   nd = length(dn)
   idx = vector("list", nd)
-  args = match.call()
 
   for (d in seq_len(nd)) {
     arg = subs[[d]]
-    if (is.character(arg) && length(arg) == 1 && grepl("\\$", arg)) {
+    if (is.character(arg)) {
+      stopifnot(length(arg) == 1)
       blk = bfetch(x, arg, dim = d)
       idx[[d]] = blk$ixs
     } else {
-      idx[[d]] = if (missing(subs[[d]])) seq_len(dim(x)[d]) else arg
+      # missing or numeric
+      idx[[d]] = arg #if (missing(subs[[d]])) seq_len(dim(x)[d]) else arg
     }
   }
 
-  result = do.call(`[`, c(list(x), idx, list(drop = drop)))
-  if (!drop) result = bprep(result)
-  result
+#  NextMethod()?
+  next_subscr = function(...) { NextMethod(generic="[", object=x, ...) }
+
+#  result = do.call(`[`, c(list(unclass(x)), idx))
+  result = do.call(next_subscr, idx)
+#  if (!drop) result = bprep(result)
+#  result
 }
 
 # ----------------------------------------------------------------
 # Utility: like `:` but ensures result is an integer vector
-`%upto%` = function(a, b) {
-  seq.int(a, b)
-}
+## `%upto%` = function(a, b) {
+##   seq.int(a, b)
+## }
