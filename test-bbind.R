@@ -1,5 +1,6 @@
 # FHE 18 May 2025
 mysource("bbind.R")
+mysource("ops-common.R") # ones_like
 
 test_bprep = function() {
   r=setNames(1:4, letters[1:4])
@@ -26,6 +27,13 @@ test_bbind = function() {
 
   # check case where names is missing:
   stopifnot("b$2" %in% rownames(bbind(a=v1, b=ones_like(v1))))
+
+  # check subscripting
+  stopifnot(all(u["b",] == 4:6L))
+  # same
+#  stopifnot(all(u["b",] == array(4:6L, dim=c(3,1))))
+
+  stopifnot(u["b$v",] == 5)
 
   message("Passed test_bbind")
   export(v1, v2, u)

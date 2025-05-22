@@ -72,6 +72,7 @@ if(0) {
 }
 
 # FHE 21 May 2025 (written with help from Grok)
+# also https://stackoverflow.com/questions/65674226/deal-with-missing-values-in-ellipsis-arguments-in-r
 # helper for subscripting in bbound
 # not sure if this would work with pqR
 # it depends on sys.call() returning empty names for the missing
@@ -79,7 +80,6 @@ if(0) {
 missing_to_NA <- function(...) {
   args = as.list(substitute(list(...))[-1])
   lapply(args, function(arg) {
-    if (arg == quote(expr = )) NA else eval(arg)
+    if (length(arg)==1 && arg == quote(expr = )) NA else eval(arg)
   })
 }
-

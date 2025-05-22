@@ -1,11 +1,11 @@
 # -*- my-source-delegate: "test-bbind.R" -*-
 # FHE 18 May 2025
-# Define bbind(), a function for managing blocks of indices in bound objects.
+# Define bbind(), a function for managing blocks of indices in vector and array objects.
 # From drafts produced by Grok and ChatGPT
 
 # Adds attribute "dimblocks" to objects, similar to "dimnames"
 # It is a list of same length as dim(x).
-# The entries are the named block data.
+# The entries are the named block data for the vector.
 
 # Each named block is stored as a list with names "ixs" (for the
 # indices of the block), "names" (for the dimnames of the block), and
@@ -16,6 +16,11 @@
 # Add class "bbound" to objects from bbind
 as.bbound = function(x) {
   class(x) = c("bbound", class(x))
+  x
+}
+
+un_bbound = function(x) {
+  class(x) = setdiff(class(x), "bbound")
   x
 }
 
@@ -156,7 +161,7 @@ bbind = function(..., along = 1) {
     out_dimnames[[d]] = ref_dns[[d]]
   }
   out_dimnames[[along]] = vector("character", out_dims[along])
-  
+
   start = 1
   for (i in seq_along(args)) {
     a = args[[i]]
@@ -172,7 +177,7 @@ bbind = function(..., along = 1) {
     idx[[along]] = start %upto% end
     # assign the block to the corresponding output array indices
     out = do.call(`[<-`, c(list(out), idx, list(value = a)))
-    
+
     # fill out_blocks
     ablocks = dimblocks(a)[[along]]
     out_blocks[[along]][[block_name]] =
@@ -188,7 +193,7 @@ bbind = function(..., along = 1) {
       out_dimnames[[along]][start:end] =
         paste0(block_name, "$", as.character(seq_len(len)))
     }
-    
+
     start = end+1
   }
 
@@ -217,14 +222,10 @@ bfetch = function(obj, dim, path) {
   ixs
 }
 
+
 # subscript method for bbound
-`[.bbound` = function(x, ...) {
-  # XXX how to handle missing arguments?
-  # https://stackoverflow.com/questions/65674226/deal-with-missing-values-in-ellipsis-arguments-in-r
-  dots_args = as.list(sys.call(1)[-(1:2)])
-  browser()
-  subs = list(...)
-  pv(subs)
+`[.bbound` = function(x, ..., drop=FALSE) {
+  subs = missing_to_NA(...)
   dn = dim(x)
   nd = length(dn)
   idx = vector("list", nd)
@@ -233,19 +234,25 @@ bfetch = function(obj, dim, path) {
     arg = subs[[d]]
     if (is.character(arg)) {
       stopifnot(length(arg) == 1)
-      blk = bfetch(x, arg, dim = d)
-      idx[[d]] = blk$ixs
+      ixs = bfetch(x, arg, dim = d)
+      idx[[d]] = ixs
+    } else if(is.numeric(arg)) {
+      # if numeric, just assume it is meant to be a numeric index
+      idx[[d]] = arg
+    } else if(length(arg)==1 && is.na(arg)) {
+      # missing
+      idx[[d]] = seq_len(dim(x)[d])
     } else {
-      # missing or numeric
-      idx[[d]] = arg #if (missing(subs[[d]])) seq_len(dim(x)[d]) else arg
+      stop("Unknown argument type for [: ",sv(arg))
     }
   }
 
-#  NextMethod()?
-  next_subscr = function(...) { NextMethod(generic="[", object=x, ...) }
-
-#  result = do.call(`[`, c(list(unclass(x)), idx))
-  result = do.call(next_subscr, idx)
-#  if (!drop) result = bprep(result)
-#  result
+  # FHE 21 May 2025
+  # tried using NextMethod here but couldn't get it to work
+  args = c(list(un_bbound(x)),idx,drop=drop)
+  do.call("[", args)
 }
+
+# TODO
+# - test various 'drop' options
+# - test interaction with tape_wrap etc.
