@@ -234,10 +234,11 @@ tape_method_dispatch = function(fn, opname, args, extra_args=NULL) {
 
   if(opname %in% dim_check_ops) {
     dims = lapply(args, dim)
+    first = dims[[1]]
     for(i in 2 %upto% length(dims)) {
-      if(!identical(dims[[i]],dims[[1]])) {
+      if(!identical(dims[[i]],first)) {
         stop("Dimension mismatch for ",opname,": ",
-          sv(i,dims[[1]],dims[[i]]))
+          sv(i,first,dims[[i]]))
       }
     }
   }
