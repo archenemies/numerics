@@ -1,3 +1,16 @@
+FHE 22 May 2025
+
+Thoughts on order of next few operations:
+
+- track logger (2d only for now?)
+  - should follow the independent variable as an attribute (see written notes)
+- finish NLCG implementation
+- pull out manip from rt-patent/rt-plots so we can use it in other projects
+  - create a third repo ("testing"?) for testing rt/numerics and manip stuff?
+    - so as not to clutter rt/numerics (duh)
+    - make track-logger live in numerics and not depend on manip definitions for plotting
+  - create wordvec explorer using manip in this third repo
+
 FHE 07 May 2025
 
 \- anticipate reason to differentiate cumsum? (did it just for fun)
