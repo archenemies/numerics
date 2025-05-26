@@ -4,6 +4,7 @@
 source("common/mysource.R")
 mysource_addpath("common/")
 mysource_addpath(".")
+mysource_addpath("../wordvecs/")
 
 # source stuff in common/
 mysource("pv.R")
