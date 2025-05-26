@@ -77,8 +77,8 @@ check_back_op = function(op="+", tol=1e-3) {
 }
 
 test_check_back_ops = function(dim=3) {
-  x = rand_array(dim)
-  y = rand_array(dim)
+  x = rand_array(dim, type="avoid_zero")
+  y = rand_array(dim, type="avoid_zero")
   export(x,y)
   check_back_op("+")(x,y)
   check_back_op("*")(x,y)

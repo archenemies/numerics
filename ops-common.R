@@ -45,17 +45,27 @@ ones_like = function(x) {
   zeros_like(x, zero=1)
 }
 
+# FHE 06 Apr 2025 for backprop testing
+# FHE 25 May 2025 moved from util.R, changed to use rnorm
+rand_fill = function(n, type="norm", offset=0.5) {
+  v = rnorm(n)
+  switch(type,
+    norm=v,
+    avoid_zero = (abs(v)+offset)*sign(v),
+    stop("Unknown type in rand_fill"))
+}
+
 # TODO: make generic?
-rand_like = function(obj) {
-  v = rand_fill(length(obj))
+rand_like = function(obj, ...) {
+  v = rand_fill(length(obj), ...)
   if(is.null(dim(obj)))
     as.vector(v)
   else
     array(v,dim(obj))
 }
 
-rand_array = function(dims) {
-  v = rand_fill(prod(dims))
+rand_array = function(dims, ...) {
+  v = rand_fill(prod(dims), ...)
   array(v,dims)
 }
 
