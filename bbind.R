@@ -105,12 +105,20 @@ bprep = function(obj) {
 # bind multiple objects along a given dimension "along". the object
 # dimensions must match in all other dimensions than "along".
 # the arguments are numeric objects and must be named.
-# e.g. bbind(a=v1, b=v2)
-bbind = function(..., along = 1) {
+# e.g. bbind(a=v1, b=v2, .along=1)
+# in no-names mode, none of the input objects are labeled, and they
+# are required not to have dimnames in the binding dimension
+bbind = function(..., .along = 1) {
   args = list(...)
-  if(is.null(names(args)) || any(names(args) == ""))
+  along = .along
+  if(is.null(names(args))) {
+    no_names = T
+  } else if(any(names(args) == "")) {
     stop("all arguments must be named")
-  arg_names = names(args)
+  } else {
+    arg_names = names(args)
+    no_names = F
+  }
 
   # if any input is not a 'bbound' object then promote it
   n_args = length(args)
@@ -153,19 +161,26 @@ bbind = function(..., along = 1) {
   }
   # now fill in the blocks for the binding dimension,
   # at the same time as we fill in the output array
-  out_blocks[[along]] = vector("list", 0)
+  if(no_names) {
+    out_blocks[along] = list(NULL);
+  } else {
+    out_blocks[[along]] = vector("list", 0)
+  }
 
   # same, for output dimnames
   out_dimnames = vector("list", n_dims)
   for(d in seq_len(n_dims)[-along]) {
-    out_dimnames[[d]] = ref_dns[[d]]
+    # FHE 25 May 2025 use [ in case RHS is NULL
+    out_dimnames[d] = ref_dns[d]
   }
-  out_dimnames[[along]] = vector("character", out_dims[along])
-
+  if(no_names) {
+    out_dimnames[along] = list(NULL)
+  } else {
+    out_dimnames[[along]] = vector("character", out_dims[along])
+  }
   start = 1
   for (i in seq_along(args)) {
     a = args[[i]]
-    block_name = arg_names[[i]]
     len = args_dims[[i]][[along]]
     end = start + len - 1
 
@@ -178,20 +193,34 @@ bbind = function(..., along = 1) {
     # assign the block to the corresponding output array indices
     out = do.call(`[<-`, c(list(out), idx, list(value = a)))
 
-    # fill out_blocks
-    ablocks = dimblocks(a)[[along]]
-    out_blocks[[along]][[block_name]] =
-      list(ixs = start %upto% end,
-        names = dimnames_or_names(a)[[along]],
-        subblocks = ablocks)
-    # fill out_dimnames
-    anas = dimnames_or_names(a)[[along]]
-    if(!is.null(anas)) {
-      out_dimnames[[along]][start:end] =
-        paste0(block_name, "$", anas)
+    if(!no_names) {
+      block_name = arg_names[[i]]
+
+      # fill out_blocks
+      ablocks = dimblocks(a)[[along]]
+      out_blocks[[along]][[block_name]] =
+        list(ixs = start %upto% end,
+          names = dimnames_or_names(a)[[along]],
+          subblocks = ablocks)
+      # fill out_dimnames
+      anas = dimnames_or_names(a)[[along]]
+      if(!is.null(anas)) {
+        out_dimnames[[along]][start:end] =
+          paste0(block_name, "$", anas)
+      } else {
+        out_dimnames[[along]][start:end] =
+          paste0(block_name, "$", as.character(seq_len(len)))
+      }
     } else {
-      out_dimnames[[along]][start:end] =
-        paste0(block_name, "$", as.character(seq_len(len)))
+      # if we're operating in no-names mode, then we expect no
+      # dimnames or dimblocks in the along dimension for any of the
+      # arguments
+      if(!is.null(dimblocks(a)[[along]])) {
+        stop("bbind: no_names mode but non-null dimblocks in argument ",i)
+      }
+      if(!is.null(dimnames(a)[[along]])) {
+        stop("bbind: no_names mode but non-null dimnames in argument ",i)
+      }
     }
 
     start = end+1

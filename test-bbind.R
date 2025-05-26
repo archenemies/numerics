@@ -18,7 +18,7 @@ test_bbind = function() {
   dimnames(v2) = list(c("u", "v", "w"), NULL)
 #  v2 = bprep(v2)
 
-  u = bbind(along = 1, a = v1, b = v2)
+  u = bbind(.along = 1, a = v1, b = v2)
 
   stopifnot(identical(dimblocks(u)[[1]][["b"]]$ixs, 4:6))
 
@@ -35,8 +35,14 @@ test_bbind = function() {
 
   stopifnot(u["b$v",] == 5)
 
+  # try no-name mode
+  w = bbind(.along = 2, v1, v2)
+  stopifnot(identical(dim(w),as.integer(c(3,2))))
+  stopifnot(is.null(dimnames(w)[[2]]))
+  stopifnot(identical(dimnames(w)[[1]],c("x","y","z")))
+
   message("Passed test_bbind")
-  export(v1, v2, u)
+  export(v1, v2, u, w)
 }
 if(mySourceLevel==0) {
   ## test_bprep()
