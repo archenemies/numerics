@@ -1,0 +1,3 @@
+FHE 01 Jun 2025
+
+convert shewchuk-p-8.png -bordercolor White -border 10x10 -trim shewchuk-p-8-trim.png

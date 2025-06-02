@@ -4,7 +4,6 @@
 *.out
 TAGS
 *.tiff
-*.png
 *.bbl
 *.toc
 *.blg
