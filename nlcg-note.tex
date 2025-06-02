@@ -59,13 +59,14 @@
 %% \raggedbottom
 
 The optimization procedure is the heart of any machine learning
-application and deserves special consideration. The NLCG (Nonlinear
-Conjugate Gradient) optimization algorithm is efficient in both time
-and memory and seems difficult to improve upon, although at the same
-time hard to understand. To make the code more understandable and
-maintainable it seemed wise to include a short summary and
-justification of the NLCG algorithm. Our primary reference is
-Shewchuk, 1994, ``An Introduction to the Conjugate Gradient Method
+application and deserves special consideration. It is used for example
+to generate parameters for a model by minimizing loss on a data set.
+The NLCG (Nonlinear Conjugate Gradient) optimization algorithm is
+efficient in both time and memory and seems difficult to improve upon,
+although at the same time hard to understand. To make the code more
+understandable and maintainable it seemed wise to include a short
+summary and justification of the NLCG algorithm. Our primary reference
+is Shewchuk, 1994, ``An Introduction to the Conjugate Gradient Method
 \ldots''. Any page numbers in this document are referring to that
 paper.
 
